@@ -10,14 +10,13 @@ const handler = NextAuth({
   providers: [
     EmailProvider({
       server: {
-        host: 'smtp.googlemail.com',
-        port: 587,
+        host: 'smtp.gmail.com',
+        port: 465,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
-        connectionTimeout: 15000,
-        greetingTimeout: 15000,
+        secure: true,
       },
       from: process.env.EMAIL_FROM,
       async sendVerificationRequest({ identifier, url, provider }) {
