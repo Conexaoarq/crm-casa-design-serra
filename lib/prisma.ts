@@ -4,15 +4,18 @@ import { Pool } from 'pg'
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL!
-  console.log("Tentando conectar ao banco de dados...");
+  console.log("Conectando ao banco com SSL...");
   
   const pool = new Pool({ 
     connectionString,
-    connectionTimeoutMillis: 5000, // 5 segundos de timeout
+    connectionTimeoutMillis: 10000,
+    ssl: {
+      rejectUnauthorized: false // Necessário para a maioria dos bancos em nuvem como Railway
+    }
   })
 
   pool.on('error', (err) => {
-    console.error('ERRO INESPERADO NO BANCO DE DADOS:', err);
+    console.error('ERRO NO BANCO:', err);
   });
 
   const adapter = new PrismaPg(pool)

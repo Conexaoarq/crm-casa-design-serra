@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
+import nodemailer from "nodemailer";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -19,22 +20,22 @@ const handler = NextAuth({
       },
       from: process.env.EMAIL_FROM,
       async sendVerificationRequest({ identifier, url, provider }) {
-        console.log("Iniciando envio de e-mail para:", identifier);
         const { host } = new URL(url);
-        const transport = require("nodemailer").createTransport(provider.server);
-        try {
-          const result = await transport.sendMail({
-            to: identifier,
-            from: provider.from,
-            subject: `Entrar em ${host}`,
-            text: `Acesse este link para entrar: ${url}`,
-            html: `<p>Clique no link para entrar: <a href="${url}">${url}</a></p>`,
-          });
-          console.log("E-mail enviado com sucesso!", result.messageId);
-        } catch (error) {
-          console.error("ERRO NO ENVIO DE E-MAIL:", error);
-          throw new Error("SEND_VERIFICATION_EMAIL_ERROR");
-        }
+        const transport = nodemailer.createTransport(provider.server);
+        await transport.sendMail({
+          to: identifier,
+          from: provider.from,
+          subject: `Acesso ao CRM Casa Design Serra`,
+          text: `Acesse este link para entrar no CRM: ${url}`,
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto;">
+              <h2>Olá!</h2>
+              <p>Clique no botão abaixo para entrar no CRM Casa Design Serra:</p>
+              <a href="${url}" style="display: inline-block; padding: 12px 24px; background-color: #000; color: #fff; text-decoration: none; border-radius: 6px;">Entrar no CRM</a>
+              <p style="margin-top: 20px; font-size: 12px; color: #666;">Se você não solicitou este link, pode ignorar este e-mail.</p>
+            </div>
+          `,
+        });
       },
     }),
   ],
