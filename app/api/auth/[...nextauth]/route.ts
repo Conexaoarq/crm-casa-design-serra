@@ -57,6 +57,7 @@ const handler = NextAuth({
       return session;
     },
   },
+  debug: true, // Ativa logs detalhados para diagnóstico
 });
 
 export { handler as GET, handler as POST };
