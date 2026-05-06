@@ -15,9 +15,27 @@ const handler = NextAuth({
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
-        secure: false, // Usar TLS na porta 587
+        secure: false,
       },
       from: process.env.EMAIL_FROM,
+      async sendVerificationRequest({ identifier, url, provider }) {
+        console.log("Iniciando envio de e-mail para:", identifier);
+        const { host } = new URL(url);
+        const transport = require("nodemailer").createTransport(provider.server);
+        try {
+          const result = await transport.sendMail({
+            to: identifier,
+            from: provider.from,
+            subject: `Entrar em ${host}`,
+            text: `Acesse este link para entrar: ${url}`,
+            html: `<p>Clique no link para entrar: <a href="${url}">${url}</a></p>`,
+          });
+          console.log("E-mail enviado com sucesso!", result.messageId);
+        } catch (error) {
+          console.error("ERRO NO ENVIO DE E-MAIL:", error);
+          throw new Error("SEND_VERIFICATION_EMAIL_ERROR");
+        }
+      },
     }),
   ],
   session: {
