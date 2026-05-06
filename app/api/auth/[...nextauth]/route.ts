@@ -5,22 +5,20 @@ import prisma from "@/lib/prisma";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
+  secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true, // Necessário para Railway/Proxies
   providers: [
     EmailProvider({
       server: {
-        host: process.env.EMAIL_SERVER_HOST,
-        port: parseInt(process.env.EMAIL_SERVER_PORT || "587"),
+        host: "smtp.gmail.com",
+        port: 465,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
-        // Configuração importante para Locaweb/Hospedagens brasileiras
-        secure: process.env.EMAIL_SERVER_PORT === "465",
-        tls: {
-          rejectUnauthorized: false
-        }
+        secure: true,
       },
-      from: process.env.EMAIL_FROM || "noreply@casadesignserra.com.br",
+      from: process.env.EMAIL_FROM,
     }),
   ],
   session: {
