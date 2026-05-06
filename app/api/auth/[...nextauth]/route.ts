@@ -10,12 +10,12 @@ const handler = NextAuth({
     EmailProvider({
       server: {
         host: "smtp.gmail.com",
-        port: 465,
+        port: 587,
         auth: {
           user: process.env.EMAIL_SERVER_USER,
           pass: process.env.EMAIL_SERVER_PASSWORD,
         },
-        secure: true,
+        secure: false, // Usar TLS na porta 587
       },
       from: process.env.EMAIL_FROM,
     }),
