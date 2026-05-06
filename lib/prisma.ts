@@ -4,7 +4,17 @@ import { Pool } from 'pg'
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL!
-  const pool = new Pool({ connectionString })
+  console.log("Tentando conectar ao banco de dados...");
+  
+  const pool = new Pool({ 
+    connectionString,
+    connectionTimeoutMillis: 5000, // 5 segundos de timeout
+  })
+
+  pool.on('error', (err) => {
+    console.error('ERRO INESPERADO NO BANCO DE DADOS:', err);
+  });
+
   const adapter = new PrismaPg(pool)
   return new PrismaClient({ adapter })
 }
