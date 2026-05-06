@@ -6,7 +6,6 @@ import prisma from "@/lib/prisma";
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
-  trustHost: true, // Necessário para Railway/Proxies
   providers: [
     EmailProvider({
       server: {
