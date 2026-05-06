@@ -4,97 +4,110 @@ import Link from "next/link";
 export const dynamic = 'force-dynamic';
 
 async function getAdminData() {
-  // Total de negócios fechados
-  const totalNegocios = await prisma.closedBusiness.aggregate({
-    _sum: { value: true },
-    _count: { id: true },
-  });
+  try {
+    // Total de negócios fechados
+    const totalNegocios = await prisma.closedBusiness.aggregate({
+      _sum: { value: true },
+      _count: { id: true },
+    });
 
-  // Total de indicações
-  const totalIndicacoes = await prisma.referral.count();
+    // Total de indicações
+    const totalIndicacoes = await prisma.referral.count();
 
-  // Total de membros
-  const totalMembros = await prisma.user.count();
+    // Total de membros
+    const totalMembros = await prisma.user.count();
 
-  // Ranking: Mais indicados (empresas que mais receberam indicações)
-  const maisIndicadosRaw = await prisma.referral.groupBy({
-    by: ['toUserId'],
-    where: { toUserId: { not: null } },
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 10,
-  });
+    // Ranking: Mais indicados (empresas que mais receberam indicações)
+    const maisIndicadosRaw = await prisma.referral.groupBy({
+      by: ['toUserId'],
+      where: { toUserId: { not: null } },
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 10,
+    });
 
-  const maisIndicadosUsers = await Promise.all(
-    maisIndicadosRaw.map(async (item) => {
-      const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
-      return {
-        nome: user?.companyName || user?.name || 'Membro',
-        count: item._count.id,
-      };
-    })
-  );
+    const maisIndicadosUsers = await Promise.all(
+      maisIndicadosRaw.map(async (item) => {
+        const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
+        return {
+          nome: user?.companyName || user?.name || 'Membro',
+          count: item._count.id,
+        };
+      })
+    );
 
-  // Ranking: Maiores indicadores (quem mais indicou)
-  const maioresIndicadoresRaw = await prisma.referral.groupBy({
-    by: ['fromUserId'],
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 10,
-  });
+    // Ranking: Maiores indicadores (quem mais indicou)
+    const maioresIndicadoresRaw = await prisma.referral.groupBy({
+      by: ['fromUserId'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } },
+      take: 10,
+    });
 
-  const maioresIndicadoresUsers = await Promise.all(
-    maioresIndicadoresRaw.map(async (item) => {
-      const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
-      return {
-        nome: user?.companyName || user?.name || 'Membro',
-        count: item._count.id,
-      };
-    })
-  );
+    const maioresIndicadoresUsers = await Promise.all(
+      maioresIndicadoresRaw.map(async (item) => {
+        const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
+        return {
+          nome: user?.companyName || user?.name || 'Membro',
+          count: item._count.id,
+        };
+      })
+    );
 
-  // Últimos negócios fechados (com valor)
-  const ultimosNegocios = await prisma.closedBusiness.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: {
-      referral: {
-        include: { fromUser: true }
+    // Últimos negócios fechados (com valor)
+    const ultimosNegocios = await prisma.closedBusiness.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        referral: {
+          include: { fromUser: true }
+        }
       }
-    }
-  });
+    });
 
-  // Últimos logs de auditoria
-  const ultimosLogs = await prisma.auditLog.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 15,
-    include: { user: true }
-  });
+    // Últimos logs de auditoria
+    const ultimosLogs = await prisma.auditLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 15,
+      include: { user: true }
+    });
 
-  return {
-    totalNegocios: {
-      count: totalNegocios._count.id,
-      value: totalNegocios._sum.value || 0,
-    },
-    totalIndicacoes,
-    totalMembros,
-    maisIndicados: maisIndicadosUsers,
-    maioresIndicadores: maioresIndicadoresUsers,
-    ultimosNegocios: ultimosNegocios.map(n => ({
-      id: n.id,
-      value: n.value,
-      clientName: n.referral.clientName,
-      fromUser: n.referral.fromUser.companyName || n.referral.fromUser.name || 'Membro',
-      closedAt: n.closedAt.toLocaleDateString('pt-BR'),
-    })),
-    ultimosLogs: ultimosLogs.map(l => ({
-      id: l.id,
-      action: l.action,
-      userName: l.user.companyName || l.user.name || 'Membro',
-      details: l.details,
-      createdAt: l.createdAt.toLocaleString('pt-BR'),
-    })),
-  };
+    return {
+      totalNegocios: {
+        count: totalNegocios._count.id,
+        value: totalNegocios._sum.value || 0,
+      },
+      totalIndicacoes,
+      totalMembros,
+      maisIndicados: maisIndicadosUsers,
+      maioresIndicadores: maioresIndicadoresUsers,
+      ultimosNegocios: ultimosNegocios.map(n => ({
+        id: n.id,
+        value: n.value,
+        clientName: n.referral.clientName,
+        fromUser: n.referral.fromUser.companyName || n.referral.fromUser.name || 'Membro',
+        closedAt: n.closedAt.toLocaleDateString('pt-BR'),
+      })),
+      ultimosLogs: ultimosLogs.map(l => ({
+        id: l.id,
+        action: l.action,
+        userName: l.user.companyName || l.user.name || 'Membro',
+        details: l.details,
+        createdAt: l.createdAt.toLocaleString('pt-BR'),
+      })),
+    };
+  } catch (error) {
+    console.error("Erro ao carregar dados do admin:", error);
+    return {
+      totalNegocios: { count: 0, value: 0 },
+      totalIndicacoes: 0,
+      totalMembros: 0,
+      maisIndicados: [],
+      maioresIndicadores: [],
+      ultimosNegocios: [],
+      ultimosLogs: [],
+    };
+  }
 }
 
 const ACTION_LABELS: Record<string, string> = {
