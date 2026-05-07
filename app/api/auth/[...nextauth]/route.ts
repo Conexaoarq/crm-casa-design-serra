@@ -59,6 +59,20 @@ const handler = NextAuth({
     verifyRequest: "/login/verificar",
   },
   callbacks: {
+    async signIn({ user }) {
+      if (user.email === 'aabergamo@gmail.com') {
+        try {
+          await prisma.user.update({
+            where: { email: user.email },
+            data: { role: 'ADMIN' },
+          });
+          console.log("Usuário promovido a ADMIN durante o login:", user.email);
+        } catch (e) {
+          console.error("Erro ao promover admin:", e);
+        }
+      }
+      return true;
+    },
     async session({ session, user }) {
       if (session.user) {
         (session.user as any).id = user.id;
