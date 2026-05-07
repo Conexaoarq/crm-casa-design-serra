@@ -139,9 +139,14 @@ export default async function AdminPage() {
             <h1 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.025em' }}>Painel Administrativo</h1>
             <p style={{ color: 'var(--muted-foreground)' }}>Métricas e controle da Casa Design Serra</p>
           </div>
-          <Link href="/" className="btn-outline" style={{ textDecoration: 'none' }}>
-            ← Dashboard
-          </Link>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/admin/membros" className="btn-primary" style={{ textDecoration: 'none', padding: '0.5rem 1.5rem' }}>
+              👥 Gestão de Empresas
+            </Link>
+            <Link href="/" className="btn-outline" style={{ textDecoration: 'none' }}>
+              ← Dashboard
+            </Link>
+          </div>
         </div>
 
         {/* KPIs */}
