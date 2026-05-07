@@ -140,11 +140,20 @@ export default async function AdminPage() {
             <p style={{ color: 'var(--muted-foreground)' }}>Métricas e controle da Casa Design Serra</p>
           </div>
           <div style={{ display: 'flex', gap: '1rem' }}>
-            <Link href="/admin/membros" className="btn-primary" style={{ textDecoration: 'none', padding: '0.5rem 1.5rem' }}>
-              👥 Gestão de Empresas
+            <Link href="/admin/membros" className="btn-primary" style={{ 
+              textDecoration: 'none', 
+              padding: '0.5rem 1.5rem',
+              backgroundColor: '#000',
+              color: '#fff',
+              borderRadius: '6px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              👥 GESTÃO DE EMPRESAS
             </Link>
-            <Link href="/" className="btn-outline" style={{ textDecoration: 'none' }}>
-              ← Dashboard
+            <Link href="/" className="btn-outline" style={{ textDecoration: 'none', padding: '0.5rem 1rem', border: '1px solid #ccc', borderRadius: '6px' }}>
+              ← Ir para Site (Usuários)
             </Link>
           </div>
         </div>
