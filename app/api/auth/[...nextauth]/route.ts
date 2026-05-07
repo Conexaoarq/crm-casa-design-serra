@@ -4,7 +4,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
 
-const handler = NextAuth({
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
   providers: [
@@ -62,7 +62,7 @@ const handler = NextAuth({
     }
   },
   session: {
-    strategy: "database",
+    strategy: "database" as const,
     maxAge: 90 * 24 * 60 * 60, // 90 dias - a pessoa fica logada por 3 meses
   },
   pages: {
@@ -70,7 +70,7 @@ const handler = NextAuth({
     verifyRequest: "/login/verificar",
   },
   callbacks: {
-    async signIn({ user }) {
+    async signIn({ user }: { user: any }) {
       if (user.email === 'aabergamo@gmail.com') {
         try {
           await prisma.user.update({
@@ -84,16 +84,18 @@ const handler = NextAuth({
       }
       return true;
     },
-    async session({ session, user }) {
+    async session({ session, user }: { session: any; user: any }) {
       if (session.user) {
-        (session.user as any).id = user.id;
-        (session.user as any).role = (user as any).role;
-        (session.user as any).companyName = (user as any).companyName;
+        session.user.id = user.id;
+        session.user.role = user.role;
+        session.user.companyName = user.companyName;
       }
       return session;
     },
   },
-  debug: true, // Ativa logs detalhados para diagnóstico
-});
+  debug: true,
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
