@@ -1,7 +1,20 @@
-'use client';
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 import Link from "next/link";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  // Se for admin, redireciona para o painel administrativo por padrão
+  if ((session.user as any).role === 'ADMIN') {
+    redirect("/admin");
+  }
+
   return (
     <div className="container animate-fade-in">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -37,14 +50,6 @@ export default function Home() {
               flexDirection: 'column',
               backgroundColor: 'var(--background)'
             }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.04)';
-            }}
             >
               <div style={{
                 width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem'
@@ -73,14 +78,6 @@ export default function Home() {
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: 'var(--background)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-4px)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.08)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.04)';
             }}
             >
               <div style={{
@@ -111,14 +108,6 @@ export default function Home() {
               gap: '1.5rem',
               backgroundColor: 'var(--primary)',
               color: 'var(--primary-foreground)'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.backgroundColor = '#000000';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'none';
-              e.currentTarget.style.backgroundColor = 'var(--primary)';
             }}
             >
               <div style={{
