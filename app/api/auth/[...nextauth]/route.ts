@@ -50,6 +50,17 @@ const handler = NextAuth({
       },
     }),
   ],
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: true
+      }
+    }
+  },
   session: {
     strategy: "database",
     maxAge: 90 * 24 * 60 * 60, // 90 dias - a pessoa fica logada por 3 meses
