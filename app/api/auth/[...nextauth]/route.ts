@@ -14,7 +14,7 @@ export const authOptions = {
         port: 25,
         auth: { user: "", pass: "" }
       },
-      from: "onboarding@resend.dev", // Obrigatório para contas Resend não verificadas
+      from: "onboarding@resend.dev",
       async sendVerificationRequest({ identifier, url, provider }) {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -50,50 +50,52 @@ export const authOptions = {
       },
     }),
   ],
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: true
-      }
-    }
-  },
   session: {
-    strategy: "database" as const,
-    maxAge: 90 * 24 * 60 * 60, // 90 dias - a pessoa fica logada por 3 meses
-  },
-  pages: {
-    signIn: "/login",
-    verifyRequest: "/login/verificar",
+    strategy: "jwt" as const,
+    maxAge: 30 * 24 * 60 * 60, // 30 dias
   },
   callbacks: {
     async signIn({ user }: { user: any }) {
-      if (user.email === 'aabergamo@gmail.com') {
+      const adminEmail = 'casadesignserra639@gmail.com';
+      if (user.email === adminEmail) {
         try {
           await prisma.user.update({
             where: { email: user.email },
             data: { role: 'ADMIN' },
           });
-          console.log("Usuário promovido a ADMIN durante o login:", user.email);
+          console.log("LOG: Usuário promovido a ADMIN:", user.email);
         } catch (e) {
-          console.error("Erro ao promover admin:", e);
+          // Se o usuário ainda não existir no banco, ele será criado pelo adapter
+          console.log("LOG: Aguardando criação do usuário para promover a ADMIN.");
         }
       }
       return true;
     },
-    async session({ session, user }: { session: any; user: any }) {
+    async jwt({ token, user }: { token: any; user: any }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role || 'MEMBER';
+        
+        // Garante que o administrador mestre sempre tenha a role ADMIN no token
+        if (user.email === 'casadesignserra639@gmail.com') {
+          token.role = 'ADMIN';
+        }
+      }
+      return token;
+    },
+    async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
-        session.user.id = user.id;
-        session.user.role = user.role;
-        session.user.companyName = user.companyName;
+        session.user.id = token.id;
+        session.user.role = token.role;
       }
       return session;
     },
   },
-  debug: true,
+  pages: {
+    signIn: "/login",
+    verifyRequest: "/login/verificar",
+  },
+  debug: false,
 };
 
 const handler = NextAuth(authOptions);

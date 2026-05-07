@@ -1,3 +1,6 @@
+import { getServerSession } from "next-auth/next";
+import { redirect } from "next/navigation";
+import { authOptions } from "../api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 
@@ -119,6 +122,12 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 export default async function AdminPage() {
+  const session = await getServerSession(authOptions);
+
+  if (!session || (session.user as any).role !== 'ADMIN') {
+    redirect("/login");
+  }
+
   const data = await getAdminData();
 
   return (
