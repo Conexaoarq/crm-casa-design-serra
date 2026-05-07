@@ -10,11 +10,11 @@ const handler = NextAuth({
   providers: [
     EmailProvider({
       server: {
-        host: "localhost", // Placeholder, não será usado
+        host: "localhost",
         port: 25,
         auth: { user: "", pass: "" }
       },
-      from: process.env.EMAIL_FROM || "onboarding@resend.dev",
+      from: "onboarding@resend.dev", // Obrigatório para contas Resend não verificadas
       async sendVerificationRequest({ identifier, url, provider }) {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
