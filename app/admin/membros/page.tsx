@@ -59,7 +59,8 @@ export default async function MembrosPage() {
         data: { password: token } // Usando o campo password temporariamente como token de invite
       });
 
-      const url = `${process.env.NEXTAUTH_URL}/api/invite?token=${token}&email=${encodeURIComponent(email)}`;
+      const baseUrl = "https://crm-casa-design-serra-production.up.railway.app";
+      const url = `${baseUrl}/api/invite?token=${token}&email=${encodeURIComponent(email)}`;
 
       // Enviar via Resend
       await fetch("https://api.resend.com/emails", {
