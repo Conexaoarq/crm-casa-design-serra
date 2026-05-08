@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 import Link from "next/link";
+import prisma from "@/lib/prisma";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -10,6 +11,49 @@ export default async function Home() {
     redirect("/login");
   }
 
+  // Buscar dados reais para o ranking
+  const maisIndicadosRaw = await prisma.referral.groupBy({
+    by: ['toUserId'],
+    where: { toUserId: { not: null } },
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 5,
+  });
+
+  const maisIndicados = await Promise.all(
+    maisIndicadosRaw.map(async (item, i) => {
+      const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
+      return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
+    })
+  );
+
+  const maioresIndicadoresRaw = await prisma.referral.groupBy({
+    by: ['fromUserId'],
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 5,
+  });
+
+  const maioresIndicadores = await Promise.all(
+    maioresIndicadoresRaw.map(async (item, i) => {
+      const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
+      return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
+    })
+  );
+
+  // Buscar interações reais do usuário
+  const interacoes = await prisma.auditLog.findMany({
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+
+  const ACTION_LABELS: any = {
+    CREATE_REFERRAL: 'Você enviou uma indicação',
+    LOGIN: 'Você acessou o sistema',
+    REGISTER_CLOSED_BUSINESS: 'Você registrou um negócio fechado',
+  };
+
   return (
     <div className="container animate-fade-in">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -17,8 +61,8 @@ export default async function Home() {
         {/* Botão de Admin condicional */}
         {(session.user as any).role === 'ADMIN' && (
           <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem' }}>
-            <Link href="/admin" className="btn-outline" style={{ fontSize: '0.75rem', padding: '0.5rem 1rem' }}>
-              ⚙️ Painel Administrativo
+            <Link href="/admin" className="btn-outline" style={{ fontSize: '0.75rem', padding: '0.5rem 1rem', borderRadius: '20px', border: '1px solid #000' }}>
+              ⚙️ Área de Gestão (ADMIN)
             </Link>
           </div>
         )}
@@ -44,20 +88,8 @@ export default async function Home() {
           
           {/* Card: Dar Indicação */}
           <Link href="/indicacao/nova" style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{
-              padding: '2rem',
-              borderRadius: 'var(--radius)',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: 'var(--background)'
-            }}
-            >
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem'
-              }}>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid var(--border)' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--foreground)' }}>Indicar um Multiplicador</h3>
@@ -65,28 +97,15 @@ export default async function Home() {
                 Conecte um cliente ou parceiro com alguma empresa do nosso grupo.
               </p>
               <div style={{ marginTop: '1.5rem', fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                Avançar 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Avançar &rarr;
               </div>
             </div>
           </Link>
 
           {/* Card: Pedir Indicação */}
           <Link href="/indicacao/pedir" style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{
-              padding: '2rem',
-              borderRadius: 'var(--radius)',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: 'var(--background)'
-            }}
-            >
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem'
-              }}>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid var(--border)' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               </div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--foreground)' }}>Quero um Lead Quente!</h3>
@@ -94,29 +113,15 @@ export default async function Home() {
                 Está procurando alguém específico? Peça ajuda para o grupo.
               </p>
               <div style={{ marginTop: '1.5rem', fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                Avançar 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                Avançar &rarr;
               </div>
             </div>
           </Link>
 
           {/* Card: Registrar Negócio Fechado */}
           <Link href="/negocio-fechado" style={{ textDecoration: 'none', gridColumn: '1 / -1' }}>
-            <div className="glass-panel" style={{
-              padding: '2rem',
-              borderRadius: 'var(--radius)',
-              transition: 'all 0.2s ease',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '1.5rem',
-              backgroundColor: 'var(--primary)',
-              color: 'var(--primary-foreground)'
-            }}
-            >
-              <div style={{
-                width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               </div>
               <div style={{ flex: 1 }}>
@@ -126,69 +131,20 @@ export default async function Home() {
                 </p>
               </div>
               <div style={{ fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center' }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                &rarr;
               </div>
             </div>
           </Link>
-
         </div>
 
-        {/* --- NOVA SESSÃO: QUEM EU POSSO AJUDAR --- */}
-        <div style={{ marginTop: '4rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.025em' }}>Quem eu posso ajudar!</h2>
-            <Link href="/pedidos" style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem', fontWeight: 500 }}>
-              Veja mais aqui &rarr;
-            </Link>
-          </div>
-          <div className="glass-panel" style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', overflow: 'hidden' }}>
-            {/* Lista mockada de ultimos 5 pedidos */}
-            {[
-              { id: 1, nome: "Amma design", req: "Preciso de um contato direto na Construtora X." },
-              { id: 2, nome: "Duo Mobile", req: "Procuro indicação de arquiteto focado em escritórios." },
-              { id: 3, nome: "Nolan Collection", req: "Busco contato com gestores de hotéis na serra." },
-              { id: 4, nome: "Triade", req: "Preciso de indicação para pintura epóxi." },
-              { id: 5, nome: "AZ", req: "Procuro contato do síndico do Condomínio Y." }
-            ].map((item, i) => (
-              <div key={item.id} style={{ 
-                padding: '1.25rem', 
-                borderBottom: i < 4 ? '1px solid var(--border)' : 'none',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '1rem'
-              }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--secondary)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
-                  {item.nome.charAt(0)}
-                </div>
-                <div>
-                  <h4 style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{item.nome}</h4>
-                  <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>{item.req}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* --- NOVA SESSÃO: RANKING --- */}
+        {/* RANKINGS */}
         <div style={{ marginTop: '4rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}>
           
-          {/* Mais Indicados */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Mais Indicados</h2>
-              <Link href="/ranking/indicados" style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: 500 }}>
-                Ver todos
-              </Link>
-            </div>
-            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-              {[
-                { pos: 1, nome: "Nolan Collection", pts: 42 },
-                { pos: 2, nome: "DCA", pts: 38 },
-                { pos: 3, nome: "Triade", pts: 35 },
-                { pos: 4, nome: "Amma design", pts: 29 },
-                { pos: 5, nome: "Futura Luz", pts: 21 },
-              ].map((item) => (
-                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: item.pos < 5 ? '1rem' : 0 }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>🏆 Mais Indicados</h2>
+            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+              {maisIndicados.length === 0 ? <p style={{ fontSize: '0.8rem', color: '#999' }}>Ainda sem registros.</p> : maisIndicados.map((item) => (
+                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontWeight: 700, color: item.pos === 1 ? '#d4af37' : 'var(--muted-foreground)' }}>{item.pos}º</span>
                     <span style={{ fontWeight: 500 }}>{item.nome}</span>
@@ -199,23 +155,11 @@ export default async function Home() {
             </div>
           </div>
 
-          {/* Maiores Indicadores */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700 }}>Maiores Indicadores</h2>
-              <Link href="/ranking/indicadores" style={{ color: 'var(--muted-foreground)', fontSize: '0.75rem', fontWeight: 500 }}>
-                Ver todos
-              </Link>
-            </div>
-            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-              {[
-                { pos: 1, nome: "AZ", pts: 55 },
-                { pos: 2, nome: "Duo Mobile", pts: 41 },
-                { pos: 3, nome: "Gregory Volpato", pts: 33 },
-                { pos: 4, nome: "Ecobraum", pts: 30 },
-                { pos: 5, nome: "Sole Aquecimento", pts: 25 },
-              ].map((item) => (
-                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: item.pos < 5 ? '1rem' : 0 }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1.5rem' }}>🚀 Maiores Indicadores</h2>
+            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
+              {maioresIndicadores.length === 0 ? <p style={{ fontSize: '0.8rem', color: '#999' }}>Ainda sem registros.</p> : maioresIndicadores.map((item) => (
+                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontWeight: 700, color: item.pos === 1 ? '#d4af37' : 'var(--muted-foreground)' }}>{item.pos}º</span>
                     <span style={{ fontWeight: 500 }}>{item.nome}</span>
@@ -225,46 +169,27 @@ export default async function Home() {
               ))}
             </div>
           </div>
-
         </div>
 
-        {/* --- NOVA SESSÃO: MINHAS INTERAÇÕES --- */}
+        {/* INTERAÇÕES */}
         <div style={{ marginTop: '4rem', marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, letterSpacing: '-0.025em', marginBottom: '1.5rem' }}>Minhas Interações</h2>
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-            
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '1.5rem' }}>Minhas Interações</h2>
+          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', position: 'relative' }}>
-              {/* Linha vertical da timeline */}
               <div style={{ position: 'absolute', left: '11px', top: '10px', bottom: '10px', width: '2px', backgroundColor: 'var(--border)' }}></div>
               
-              <div style={{ display: 'flex', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+              {interacoes.length === 0 ? <p style={{ fontSize: '0.9rem', color: '#999', paddingLeft: '30px' }}>Você ainda não realizou interações.</p> : interacoes.map((log) => (
+                <div key={log.id} style={{ display: 'flex', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
+                  <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17l-5-5"/></svg>
+                  </div>
+                  <div>
+                    <p style={{ fontWeight: 500 }}>{ACTION_LABELS[log.action] || log.action}</p>
+                    <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{log.createdAt.toLocaleDateString('pt-BR')} • {log.details || ''}</p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ fontWeight: 500 }}>Você indicou "Nolan Collection"</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Cliente: Arq. João Silva • Há 2 horas</p>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--secondary)', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}></div>
-                <div>
-                  <p style={{ fontWeight: 500 }}>Você registrou um Negócio Fechado</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Origem: AZ • Ontem</p>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '1.5rem', position: 'relative', zIndex: 1 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'var(--secondary)', border: '2px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}></div>
-                <div>
-                  <p style={{ fontWeight: 500 }}>"DCA" visualizou sua solicitação de Lead</p>
-                  <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>Pedido: Contato Construtora X • Há 3 dias</p>
-                </div>
-              </div>
-
+              ))}
             </div>
-
           </div>
         </div>
 
