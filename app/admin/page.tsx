@@ -111,7 +111,7 @@ export default async function AdminDashboard() {
           {[
             { label: 'Vendas Totais', val: new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.stats.totalVendas), desc: 'Volume de negócios' },
             { label: 'Indicações', val: data.stats.totalIndicacoes, desc: 'Total gerado' },
-            { label: 'Membros Ativos', val: `${data.stats.totalMembros}/40`, desc: 'Vagas do grupo' },
+            { label: 'Membros Ativos', val: `${data.stats.totalMembros}/50`, desc: 'Vagas do grupo' },
             { label: 'Negócios Fechados', val: data.stats.qtdVendas, desc: 'Conversões reais' },
           ].map((s, i) => (
             <div key={i} style={{ 

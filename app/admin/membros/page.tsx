@@ -110,7 +110,7 @@ export default async function MembrosPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #000' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Membros Cadastrados</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.length} <span style={{ fontSize: '1rem', color: '#ccc', fontWeight: 400 }}>/ 40</span></div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.length} <span style={{ fontSize: '1rem', color: '#ccc', fontWeight: 400 }}>/ 50</span></div>
           </div>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #00c000' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Convites Enviados</div>
@@ -118,7 +118,7 @@ export default async function MembrosPage() {
           </div>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #aaa' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vagas Disponíveis</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{Math.max(0, 40 - membros.length)}</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{Math.max(0, 50 - membros.length)}</div>
           </div>
         </div>
 
