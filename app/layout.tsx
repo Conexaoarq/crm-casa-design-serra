@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
+import { Providers } from "@/components/Providers";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -18,7 +20,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <Providers>
+          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           {/* Topbar genérica minimalista */}
           <header style={{ 
             padding: '1rem 0', 
@@ -51,6 +54,7 @@ export default function RootLayout({
             <p>© {new Date().getFullYear()} Casa Design Serra. Todos os direitos reservados.</p>
           </footer>
         </div>
+        </Providers>
       </body>
     </html>
   );

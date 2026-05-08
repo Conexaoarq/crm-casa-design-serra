@@ -60,6 +60,7 @@ model User {
   phone         String?
   role          String    @default("MEMBER") // "MEMBER" or "ADMIN"
   password      String?   // Para login administrativo
+  createdAt     DateTime  @default(now())
   
   // Relations
   accounts      Account[]

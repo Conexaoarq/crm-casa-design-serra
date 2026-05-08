@@ -27,7 +27,7 @@ export async function GET() {
     const to = r.toUser?.companyName || 'Todos';
     const client = r.clientName;
     const status = r.status;
-    const value = r.closedBusiness?.[0]?.value || 0;
+    const value = (r.closedBusiness as any)?.[0]?.value || 0;
     
     csv += `${date},"${from}","${to}","${client}",${status},${value}\n`;
   });
