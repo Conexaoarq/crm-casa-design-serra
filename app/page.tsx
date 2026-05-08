@@ -16,7 +16,7 @@ export default async function Home() {
     redirect("/admin");
   }
 
-  // Buscar dados reais para o ranking
+  // Ranking: Mais indicados
   const maisIndicadosRaw = await prisma.referral.groupBy({
     by: ['toUserId'],
     where: { toUserId: { not: null } },
@@ -25,13 +25,16 @@ export default async function Home() {
     take: 5,
   });
 
-  const maisIndicados = await Promise.all(
-    maisIndicadosRaw.map(async (item, i) => {
-      const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
-      return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
-    })
-  );
+  const maisIndicados = await Promise.all(maisIndicadosRaw.map(async (item, i) => {
+    const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
+    return {
+      pos: i + 1,
+      nome: user?.companyName || user?.name || 'Membro',
+      pts: item._count.id
+    };
+  }));
 
+  // Ranking: Maiores indicadores
   const maioresIndicadoresRaw = await prisma.referral.groupBy({
     by: ['fromUserId'],
     _count: { id: true },
@@ -39,12 +42,14 @@ export default async function Home() {
     take: 5,
   });
 
-  const maioresIndicadores = await Promise.all(
-    maioresIndicadoresRaw.map(async (item, i) => {
-      const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
-      return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
-    })
-  );
+  const maioresIndicadores = await Promise.all(maioresIndicadoresRaw.map(async (item, i) => {
+    const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
+    return {
+      pos: i + 1,
+      nome: user?.companyName || user?.name || 'Membro',
+      pts: item._count.id
+    };
+  }));
 
   // Buscar interações reais do usuário
   const interacoes = await prisma.auditLog.findMany({
@@ -58,40 +63,63 @@ export default async function Home() {
     LOGIN: 'Você acessou o sistema',
     REGISTER_CLOSED_BUSINESS: 'Você registrou um negócio fechado',
   };
+  const [activeAction, setActiveAction] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+
+  const handleActionClick = (action: string) => {
+    setActiveAction(action);
+    setFeedback(null);
+  };
+
+  const handleCloseAction = () => {
+    setActiveAction(null);
+    setFeedback(null);
+  };
+
+  const handleSuccess = (msg: string) => {
+    setFeedback({ type: 'success', msg });
+    setTimeout(() => {
+      handleCloseAction();
+    }, 2000);
+  };
 
   return (
-    <div className="container animate-fade-in">
+    <div className="container animate-fade-in" style={{ paddingBottom: '5rem' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
+        {/* Feedback Toast */}
+        {feedback && (
+          <div style={{ 
+            position: 'fixed', 
+            top: '20px', 
+            right: '20px', 
+            backgroundColor: feedback.type === 'success' ? '#000' : '#c00', 
+            color: '#fff', 
+            padding: '1rem 2rem', 
+            borderRadius: '12px', 
+            boxShadow: '0 10px 20px rgba(0,0,0,0.2)',
+            zIndex: 1000,
+            animation: 'slide-in-right 0.3s ease-out'
+          }}>
+            {feedback.msg}
+          </div>
+        )}
+
         <div style={{ 
           textAlign: 'center', 
           marginBottom: '3rem',
-          padding: '2rem 0'
+          paddingTop: '2rem'
         }}>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.025em', marginBottom: '1rem' }}>
-            Como você vai multiplicar hoje?
+          <h1 style={{ 
+            fontSize: '2.5rem', 
+            fontWeight: 800, 
+            letterSpacing: '-0.05em', 
+            marginBottom: '1rem',
+            lineHeight: 1.1
+          }}>
+            Como você vai <br />
+            <span style={{ color: '#000' }}>multiplicar hoje?</span>
           </h1>
-          <p style={{ color: 'var(--muted-foreground)', fontSize: '1.125rem' }}>
-            Selecione uma das opções abaixo para movimentar a rede da Casa Design Serra.
-          </p>
-        </div>
-
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', 
-          gap: '1.5rem' 
-        }}>
-          
-          {/* Card: Dar Indicação */}
-          <Link href="/indicacao/nova" style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid var(--border)' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--foreground)' }}>Indicar um Multiplicador</h3>
-              <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem', lineHeight: 1.5, flex: 1 }}>
-                Conecte um cliente ou parceiro com alguma empresa do nosso grupo.
-              </p>
               <div style={{ marginTop: '1.5rem', fontWeight: 500, fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 Avançar &rarr;
               </div>

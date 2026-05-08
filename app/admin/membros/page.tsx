@@ -98,15 +98,33 @@ export default async function MembrosPage() {
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-          <div>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700 }}>Gestão de Empresas</h1>
-            <p style={{ color: 'var(--muted-foreground)' }}>Cadastre as 40 empresas do grupo aqui.</p>
-          </div>
+          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, letterSpacing: '-0.05em', marginBottom: '0.5rem' }}>
+          Gestão de Empresas
+        </h1>
           <Link href="/admin" className="btn-outline">← Voltar</Link>
+        </div>
+        <p style={{ color: '#666', marginBottom: '2.5rem' }}>
+          Controle de participantes e disparos de convites exclusivos.
+        </p>
+
+        {/* Resumo do Grupo */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #000' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Membros Cadastrados</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.length} <span style={{ fontSize: '1rem', color: '#ccc', fontWeight: 400 }}>/ 40</span></div>
+          </div>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #00c000' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Convites Enviados</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.filter(m => m.role !== 'ADMIN').length}</div>
+          </div>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #aaa' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vagas Disponíveis</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{Math.max(0, 40 - membros.length)}</div>
+          </div>
         </div>
 
         {/* Formulário de Cadastro */}
-        <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', marginBottom: '2rem' }}>
+        <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', marginBottom: '3rem' }}>
           <h3 style={{ marginBottom: '1.5rem', fontWeight: 600 }}>Cadastrar Novo Membro</h3>
           <form action={addMembro} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '1rem', alignItems: 'flex-end' }}>
             <div>

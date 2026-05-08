@@ -149,7 +149,7 @@ export async function getDashboardData() {
   });
 
   // Ranking: Mais indicados (receberam mais indicações)
-  const maisIndicados = await prisma.referral.groupBy({
+  const maisIndicadosRaw = await prisma.referral.groupBy({
     by: ['toUserId'],
     where: { toUserId: { not: null } },
     _count: { id: true },
@@ -157,13 +157,29 @@ export async function getDashboardData() {
     take: 5,
   });
 
+  const maisIndicados = await Promise.all(maisIndicadosRaw.map(async (item) => {
+    const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
+    return {
+      nome: user?.companyName || user?.name || 'Membro',
+      count: item._count.id
+    };
+  }));
+
   // Ranking: Maiores indicadores (enviaram mais indicações)
-  const maioresIndicadores = await prisma.referral.groupBy({
+  const maioresIndicadoresRaw = await prisma.referral.groupBy({
     by: ['fromUserId'],
     _count: { id: true },
     orderBy: { _count: { id: 'desc' } },
     take: 5,
   });
+
+  const maioresIndicadores = await Promise.all(maioresIndicadoresRaw.map(async (item) => {
+    const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
+    return {
+      nome: user?.companyName || user?.name || 'Membro',
+      count: item._count.id
+    };
+  }));
 
   // Total de negócios fechados
   const totalNegocios = await prisma.closedBusiness.aggregate({
