@@ -6,8 +6,10 @@ export async function GET(request: Request) {
   const token = searchParams.get('token');
   const email = searchParams.get('email');
 
+  const baseUrl = "https://crm-casa-design-serra-production.up.railway.app";
+
   if (!token || !email) {
-    return NextResponse.redirect(new URL('/login?error=InvalidLink', request.url));
+    return NextResponse.redirect(new URL('/login?error=InvalidLink', baseUrl));
   }
 
   // Verificar se o token bate com o que guardamos no usuário
@@ -17,9 +19,8 @@ export async function GET(request: Request) {
 
   if (user && user.password === token) {
     // Redirecionar para a página de login com os parâmetros para auto-login
-    // Vamos usar um parâmetro especial que a página de login vai identificar
-    return NextResponse.redirect(new URL(`/login?inviteToken=${token}&email=${encodeURIComponent(email)}`, request.url));
+    return NextResponse.redirect(new URL(`/login?inviteToken=${token}&email=${encodeURIComponent(email)}`, baseUrl));
   }
 
-  return NextResponse.redirect(new URL('/login?error=ExpiredLink', request.url));
+  return NextResponse.redirect(new URL('/login?error=ExpiredLink', baseUrl));
 }

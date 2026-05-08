@@ -8,6 +8,7 @@ import nodemailer from "nodemailer";
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
   secret: process.env.NEXTAUTH_SECRET,
+  url: "https://crm-casa-design-serra-production.up.railway.app",
   providers: [
     EmailProvider({
       server: {
