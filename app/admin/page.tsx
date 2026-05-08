@@ -29,99 +29,42 @@ async function getAdminData() {
       take: 10,
     });
 
-    const maisIndicadosUsers = await Promise.all(
-      maisIndicadosRaw.map(async (item) => {
-        const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
-        return {
-          nome: user?.companyName || user?.name || 'Membro',
-          count: item._count.id,
-        };
-      })
-    );
+    const maisIndicados = await Promise.all(maisIndicadosRaw.map(async (item, i) => {
+      const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
+      return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
+    }));
 
-    // Ranking: Maiores indicadores (quem mais indicou)
-    const maioresIndicadoresRaw = await prisma.referral.groupBy({
-      by: ['fromUserId'],
-      _count: { id: true },
-      orderBy: { _count: { id: 'desc' } },
-      take: 10,
-    });
-
-    const maioresIndicadoresUsers = await Promise.all(
-      maioresIndicadoresRaw.map(async (item) => {
-        const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
-        return {
-          nome: user?.companyName || user?.name || 'Membro',
-          count: item._count.id,
-        };
-      })
-    );
-
-    // Últimos negócios fechados (com valor)
-    const ultimosNegocios = await prisma.closedBusiness.findMany({
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      include: {
-        referral: {
-          include: { fromUser: true }
-        }
-      }
-    });
-
-    // Últimos logs de auditoria
+    // Últimas Interações (Logs)
     const ultimosLogs = await prisma.auditLog.findMany({
+      include: { user: true },
       orderBy: { createdAt: 'desc' },
-      take: 15,
-      include: { user: true }
+      take: 5,
     });
 
     return {
-      totalNegocios: {
-        count: totalNegocios._count.id,
-        value: totalNegocios._sum.value || 0,
+      stats: {
+        totalVendas: totalNegocios._sum.value || 0,
+        qtdVendas: totalNegocios._count.id,
+        totalIndicacoes,
+        totalMembros
       },
-      totalIndicacoes,
-      totalMembros,
-      maisIndicados: maisIndicadosUsers,
-      maioresIndicadores: maioresIndicadoresUsers,
-      ultimosNegocios: ultimosNegocios.map(n => ({
-        id: n.id,
-        value: n.value,
-        clientName: n.referral.clientName,
-        fromUser: n.referral.fromUser.companyName || n.referral.fromUser.name || 'Membro',
-        closedAt: n.closedAt.toLocaleDateString('pt-BR'),
-      })),
-      ultimosLogs: ultimosLogs.map(l => ({
-        id: l.id,
-        action: l.action,
-        userName: l.user.companyName || l.user.name || 'Membro',
-        details: l.details,
-        createdAt: l.createdAt.toLocaleString('pt-BR'),
-      })),
+      maisIndicados,
+      ultimosLogs
     };
-  } catch (error) {
-    console.error("Erro ao carregar dados do admin:", error);
-    return {
-      totalNegocios: { count: 0, value: 0 },
-      totalIndicacoes: 0,
-      totalMembros: 0,
-      maisIndicados: [],
-      maioresIndicadores: [],
-      ultimosNegocios: [],
-      ultimosLogs: [],
-    };
+  } catch (e) {
+    console.error("Erro ao buscar dados admin:", e);
+    return null;
   }
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  CREATE_REFERRAL: '📤 Nova Indicação',
-  REQUEST_LEAD: '🔍 Pedido de Lead',
-  REGISTER_CLOSED_BUSINESS: '💰 Negócio Fechado',
-  VIEW_REPORTS: '📊 Visualizou Relatórios',
-  LOGIN: '🔐 Login',
+  CREATE_REFERRAL: 'Nova Indicação',
+  REQUEST_LEAD: 'Pedido de Lead',
+  LOGIN: 'Acesso ao Sistema',
+  REGISTER_CLOSED_BUSINESS: 'Negócio Fechado',
 };
 
-export default async function AdminPage() {
+export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
 
   if (!session || (session.user as any).role !== 'ADMIN') {
@@ -129,6 +72,8 @@ export default async function AdminPage() {
   }
 
   const data = await getAdminData();
+
+  if (!data) return <div>Erro ao carregar dados do painel.</div>;
 
   return (
     <div className="container animate-fade-in">
@@ -139,143 +84,100 @@ export default async function AdminPage() {
             <h1 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.025em' }}>Painel Administrativo</h1>
             <p style={{ color: 'var(--muted-foreground)' }}>Métricas e controle da Casa Design Serra</p>
           </div>
-            <Link href="/" className="btn-outline" style={{ textDecoration: 'none', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-              Ver Visão do Usuário
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Link href="/" className="btn-outline" style={{ 
+              textDecoration: 'none', 
+              padding: '0.5rem 1rem', 
+              border: '1px solid #ccc', 
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem'
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Visão do Usuário
             </Link>
-            <a href="/api/export" download className="btn-primary" style={{ textDecoration: 'none', padding: '0.5rem 1rem', backgroundColor: '#333', color: '#fff', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            
+            <a href="/api/export" download className="btn-primary" style={{ 
+              textDecoration: 'none', 
+              padding: '0.5rem 1rem', 
+              backgroundColor: '#333', 
+              color: '#fff', 
+              borderRadius: '6px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.5rem', 
+              fontWeight: 'bold',
+              fontSize: '0.875rem'
+            }}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar
             </a>
+
             <Link href="/admin/membros" className="btn-primary" style={{ 
               textDecoration: 'none', 
-              padding: '0.5rem 1.5rem',
+              padding: '0.5rem 1rem',
               backgroundColor: '#000',
               color: '#fff',
               borderRadius: '6px',
               fontWeight: 'bold',
+              fontSize: '0.875rem',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              gap: '0.5rem'
             }}>
-              👥 GESTÃO DE EMPRESAS
-            </Link>
-            <Link href="/" className="btn-outline" style={{ textDecoration: 'none', padding: '0.5rem 1rem', border: '1px solid #ccc', borderRadius: '6px' }}>
-              ← Ir para Site (Usuários)
+              👥 GESTÃO
             </Link>
           </div>
         </div>
 
-        {/* KPIs */}
+        {/* Stats Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-          
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>Total em Negócios</p>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-              R$ {data.totalNegocios.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-            </p>
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vendas Totais</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(data.stats.totalVendas)}
+            </div>
           </div>
-          
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>Negócios Fechados</p>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700 }}>{data.totalNegocios.count}</p>
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Indicações</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{data.stats.totalIndicacoes}</div>
           </div>
-          
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>Indicações Registradas</p>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700 }}>{data.totalIndicacoes}</p>
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Empresas</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{data.stats.totalMembros} / 40</div>
           </div>
-
-          <div className="glass-panel" style={{ padding: '2rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', textAlign: 'center' }}>
-            <p style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)', marginBottom: '0.5rem' }}>Membros Cadastrados</p>
-            <p style={{ fontSize: '2.5rem', fontWeight: 700 }}>{data.totalMembros}</p>
+          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted-foreground)', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Negócios</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 800 }}>{data.stats.qtdVendas}</div>
           </div>
-
         </div>
 
-        {/* Rankings lado a lado */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
-          
-          {/* Mais Indicados */}
-          <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>🏆 Mais Indicados (Top 10)</h2>
-            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-              {data.maisIndicados.length === 0 ? (
-                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>Nenhuma indicação registrada ainda.</p>
-              ) : (
-                data.maisIndicados.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i < data.maisIndicados.length - 1 ? '0.75rem' : 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ fontWeight: 700, color: i === 0 ? '#d4af37' : 'var(--muted-foreground)', minWidth: '28px' }}>{i + 1}º</span>
-                      <span style={{ fontWeight: 500 }}>{item.nome}</span>
-                    </div>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{item.count} rec.</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
+          {/* Ranking */}
+          <div className="glass-panel" style={{ padding: '2rem' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '1.5rem' }}>🏆 Ranking de Indicações (Recebidas)</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {data.maisIndicados.map((item) => (
+                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: item.pos === 1 ? '#f8f8f8' : 'transparent', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <span style={{ fontWeight: 800, color: item.pos === 1 ? '#000' : '#ccc', width: '20px' }}>{item.pos}</span>
+                    <span style={{ fontWeight: 600 }}>{item.nome}</span>
                   </div>
-                ))
-              )}
+                  <span style={{ fontWeight: 700 }}>{item.pts}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Maiores Indicadores */}
-          <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>🚀 Maiores Indicadores (Top 10)</h2>
-            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-              {data.maioresIndicadores.length === 0 ? (
-                <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>Nenhuma indicação registrada ainda.</p>
-              ) : (
-                data.maioresIndicadores.map((item, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: i < data.maioresIndicadores.length - 1 ? '0.75rem' : 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ fontWeight: 700, color: i === 0 ? '#d4af37' : 'var(--muted-foreground)', minWidth: '28px' }}>{i + 1}º</span>
-                      <span style={{ fontWeight: 500 }}>{item.nome}</span>
-                    </div>
-                    <span style={{ fontSize: '0.875rem', color: 'var(--muted-foreground)' }}>{item.count} envios</span>
-                  </div>
-                ))
-              )}
+          {/* Audit Logs */}
+          <div className="glass-panel" style={{ padding: '0' }}>
+            <div style={{ padding: '1.5rem 2rem', borderBottom: '1px solid var(--border)' }}>
+              <h3 style={{ fontWeight: 700 }}>🕒 Atividade Recente</h3>
             </div>
-          </div>
-
-        </div>
-
-        {/* Últimos Negócios Fechados (com valor) */}
-        <div style={{ marginBottom: '3rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>💰 Últimos Negócios Fechados</h2>
-          <div className="glass-panel" style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', overflow: 'hidden' }}>
-            {data.ultimosNegocios.length === 0 ? (
-              <p style={{ padding: '1.5rem', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>Nenhum negócio fechado registrado ainda.</p>
-            ) : (
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '0.75rem', color: 'var(--muted-foreground)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    <th style={{ padding: '1rem 1.25rem', textAlign: 'left' }}>Cliente</th>
-                    <th style={{ padding: '1rem 1.25rem', textAlign: 'left' }}>Registrado por</th>
-                    <th style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>Valor</th>
-                    <th style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>Data</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.ultimosNegocios.map((n, i) => (
-                    <tr key={n.id} style={{ borderBottom: i < data.ultimosNegocios.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                      <td style={{ padding: '1rem 1.25rem', fontWeight: 500 }}>{n.clientName}</td>
-                      <td style={{ padding: '1rem 1.25rem', color: 'var(--muted-foreground)' }}>{n.fromUser}</td>
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right', fontWeight: 600 }}>
-                        R$ {n.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ padding: '1rem 1.25rem', textAlign: 'right', color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>{n.closedAt}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-
-        {/* Log de Auditoria (LGPD) */}
-        <div style={{ marginBottom: '4rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>🔒 Log de Auditoria (LGPD)</h2>
-          <div className="glass-panel" style={{ borderRadius: 'var(--radius)', backgroundColor: 'var(--background)', overflow: 'hidden' }}>
             {data.ultimosLogs.length === 0 ? (
-              <p style={{ padding: '1.5rem', color: 'var(--muted-foreground)', fontSize: '0.9rem' }}>Nenhum registro de auditoria ainda.</p>
+              <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>Nenhuma atividade registrada.</div>
             ) : (
               data.ultimosLogs.map((log, i) => (
                 <div key={log.id} style={{
@@ -288,9 +190,11 @@ export default async function AdminPage() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <span style={{ fontSize: '0.875rem' }}>{ACTION_LABELS[log.action] || log.action}</span>
-                    <span style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>— {log.userName}</span>
+                    <span style={{ color: 'var(--muted-foreground)', fontSize: '0.875rem' }}>— {log.user.companyName || log.user.name || 'Membro'}</span>
                   </div>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>{log.createdAt}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', whiteSpace: 'nowrap' }}>
+                    {new Date(log.createdAt).toLocaleDateString('pt-BR')}
+                  </span>
                 </div>
               ))
             )}
