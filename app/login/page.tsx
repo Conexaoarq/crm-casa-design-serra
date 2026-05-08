@@ -7,19 +7,25 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
     
-    await signIn('credentials', { 
+    const result = await signIn('credentials', { 
       email, 
       password, 
-      redirect: true, 
-      callbackUrl: '/admin' 
+      redirect: false, // Vamos tratar o redirecionamento manualmente para dar feedback
     });
     
-    setLoading(false);
+    if (result?.error) {
+      setError('E-mail ou senha incorretos. Tente novamente.');
+      setLoading(false);
+    } else {
+      window.location.href = '/admin';
+    }
   };
 
   return (
@@ -29,9 +35,10 @@ export default function LoginPage() {
       alignItems: 'center', 
       justifyContent: 'center', 
       background: 'radial-gradient(circle at top right, #fdfdfd, #f5f5f5)',
-      padding: '20px'
+      padding: '20px',
+      fontFamily: 'sans-serif'
     }}>
-      <div className="animate-fade-in" style={{ maxWidth: '450px', width: '100%' }}>
+      <div style={{ maxWidth: '450px', width: '100%' }}>
         
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <div style={{ 
@@ -62,11 +69,17 @@ export default function LoginPage() {
           border: '1px solid #f0f0f0'
         }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', textAlign: 'center' }}>
-            Acesso Restrito
+            Acesso do Administrador
           </h1>
           <p style={{ color: '#aaa', fontSize: '0.875rem', marginBottom: '2.5rem', textAlign: 'center' }}>
-            Identifique-se para acessar o Painel de Gestão.
+            Digite suas credenciais para gerenciar a plataforma.
           </p>
+
+          {error && (
+            <div style={{ padding: '0.75rem', backgroundColor: '#fff1f1', color: '#c00', borderRadius: '8px', fontSize: '0.875rem', marginBottom: '1.5rem', textAlign: 'center', border: '1px solid #ffcccc' }}>
+              {error}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div>
@@ -84,7 +97,7 @@ export default function LoginPage() {
                   border: '1px solid #e5e5e5', 
                   fontSize: '1rem',
                   outline: 'none',
-                  transition: 'border-color 0.2s'
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -103,12 +116,13 @@ export default function LoginPage() {
                   borderRadius: '12px', 
                   border: '1px solid #e5e5e5', 
                   fontSize: '1rem',
-                  outline: 'none'
+                  outline: 'none',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
 
-            <button type="submit" className="btn-primary" style={{ 
+            <button type="submit" style={{ 
               width: '100%', 
               padding: '1.125rem', 
               borderRadius: '12px',
@@ -119,16 +133,16 @@ export default function LoginPage() {
               cursor: 'pointer',
               border: 'none',
               marginTop: '1rem',
-              transition: 'transform 0.1s active'
+              transition: 'opacity 0.2s'
             }} disabled={loading}>
-              {loading ? 'AUTENTICANDO...' : 'ACESSAR PAINEL'}
+              {loading ? 'AUTENTICANDO...' : 'ACESSAR DASHBOARD'}
             </button>
           </form>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
           <p style={{ color: '#bbb', fontSize: '0.75rem', letterSpacing: '0.025em' }}>
-            CASA DESIGN SERRA • CRM MULTIPLICADOR • 2024
+            CASA DESIGN SERRA • CRM EXCLUSIVO • 2024
           </p>
         </div>
       </div>
