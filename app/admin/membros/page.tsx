@@ -48,21 +48,18 @@ export default async function MembrosPage() {
 
   async function enviarConvite(email: string) {
     'use server';
-    // Gerar um token único para o link mágico (simulando o NextAuth para agilidade)
-    const token = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+    // Gerar um token de convite simples e seguro
+    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
 
     try {
-      // Criar o token de verificação no banco para o NextAuth reconhecer
-      await prisma.verificationToken.create({
-        data: {
-          identifier: email,
-          token: token,
-          expires: expires,
-        }
+      // Guardar o token no modelo de usuário para validação direta
+      await prisma.user.update({
+        where: { email },
+        data: { password: token } // Usando o campo password temporariamente como token de invite
       });
 
-      const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?callbackUrl=${encodeURIComponent('/')}&token=${token}&email=${encodeURIComponent(email)}`;
+      const url = `${process.env.NEXTAUTH_URL}/api/invite?token=${token}&email=${encodeURIComponent(email)}`;
 
       // Enviar via Resend
       await fetch("https://api.resend.com/emails", {
@@ -77,17 +74,17 @@ export default async function MembrosPage() {
           subject: "Seu Acesso Exclusivo - Casa Design Serra",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #333;">Olá!</h2>
-              <p style="color: #555;">A diretoria da Casa Design Serra liberou seu acesso exclusivo à plataforma.</p>
+              <h2 style="color: #333; text-align: center;">Bem-vindo à Casa Design Serra!</h2>
+              <p style="color: #555; line-height: 1.6;">Você foi selecionado para participar da nossa plataforma exclusiva de multiplicação de negócios.</p>
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${url}" style="background-color: #000; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">ACESSAR PLATAFORMA</a>
+                <a href="${url}" style="background-color: #000; color: #fff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">CLIQUE AQUI PARA ENTRAR</a>
               </div>
-              <p style="font-size: 12px; color: #888;">Este link é único e expira em 24 horas.</p>
+              <p style="font-size: 12px; color: #888; text-align: center;">Este link é pessoal e dá acesso direto ao seu dashboard.</p>
             </div>
           `,
         }),
       });
-      console.log("Convite enviado com sucesso para:", email);
+      console.log("Convite enviado via rota de bypass para:", email);
     } catch (e) {
       console.error("Erro ao enviar convite:", e);
     }

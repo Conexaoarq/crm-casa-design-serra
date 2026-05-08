@@ -57,11 +57,27 @@ export const authOptions = {
         password: { label: "Senha", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        if (!credentials?.email) return null;
         
-        // Regra específica para os administradores durante a construção
+        // 1. Caso seja Login por Link de Convite (Auto-login)
+        if (credentials.inviteToken) {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email }
+          });
+          
+          if (user && user.password === credentials.inviteToken) {
+            // Limpar o token após o uso para segurança
+            await prisma.user.update({
+              where: { id: user.id },
+              data: { password: null }
+            });
+            return user;
+          }
+        }
+
+        // 2. Caso seja Login de Administrador com Senha
         const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
-        const masterPass = "casa639"; // Senha temporária de construção
+        const masterPass = "casa639"; // Sua senha de construção
 
         if (admins.includes(credentials.email) && credentials.password === masterPass) {
           const user = await prisma.user.upsert({
