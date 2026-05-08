@@ -1,11 +1,16 @@
 'use server';
 
 import prisma from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // ================================
 // SERVER ACTION: Criar Indicação
 // ================================
 export async function criarIndicacao(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) return { success: false, error: "Não autorizado" };
+
   const toCompany = formData.get('toCompany') as string;
   const clientName = formData.get('clientName') as string;
   const clientPhone = formData.get('clientPhone') as string;
@@ -22,24 +27,9 @@ export async function criarIndicacao(formData: FormData) {
     if (toUser) toUserId = toUser.id;
   }
 
-  // TODO: Pegar o fromUserId da sessão real do NextAuth
-  // Por enquanto, usamos um placeholder para desenvolvimento local
-  let fromUser = await prisma.user.findFirst();
-  if (!fromUser) {
-    // Criar um usuário de teste caso o banco esteja vazio
-    fromUser = await prisma.user.create({
-      data: {
-        name: "Usuário Teste",
-        email: "teste@casadesignserra.com",
-        companyName: "Casa Design Serra",
-        role: "ADMIN"
-      }
-    });
-  }
-
   const referral = await prisma.referral.create({
     data: {
-      fromUserId: fromUser.id,
+      fromUserId: (session.user as any).id,
       toUserId: toUserId,
       clientName: clientName,
       clientPhone: clientPhone || null,
@@ -52,7 +42,7 @@ export async function criarIndicacao(formData: FormData) {
   // Registrar no log de auditoria (LGPD)
   await prisma.auditLog.create({
     data: {
-      userId: fromUser.id,
+      userId: (session.user as any).id,
       action: "CREATE_REFERRAL",
       details: JSON.stringify({
         referralId: referral.id,
@@ -69,24 +59,15 @@ export async function criarIndicacao(formData: FormData) {
 // SERVER ACTION: Pedir Lead Quente
 // ================================
 export async function pedirLead(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) return { success: false, error: "Não autorizado" };
+
   const whatLookingFor = formData.get('whatLookingFor') as string;
   const howCanHelp = formData.get('howCanHelp') as string;
 
-  let fromUser = await prisma.user.findFirst();
-  if (!fromUser) {
-    fromUser = await prisma.user.create({
-      data: {
-        name: "Usuário Teste",
-        email: "teste@casadesignserra.com",
-        companyName: "Casa Design Serra",
-        role: "ADMIN"
-      }
-    });
-  }
-
   const referral = await prisma.referral.create({
     data: {
-      fromUserId: fromUser.id,
+      fromUserId: (session.user as any).id,
       toUserId: null, // Aberto para todos
       clientName: "Pedido de Lead",
       projectDetails: `O QUE PROCURO:\n${whatLookingFor}\n\nCOMO PODE AJUDAR:\n${howCanHelp}`,
@@ -96,7 +77,7 @@ export async function pedirLead(formData: FormData) {
 
   await prisma.auditLog.create({
     data: {
-      userId: fromUser.id,
+      userId: (session.user as any).id,
       action: "REQUEST_LEAD",
       details: JSON.stringify({
         referralId: referral.id,
@@ -112,27 +93,18 @@ export async function pedirLead(formData: FormData) {
 // SERVER ACTION: Registrar Negócio Fechado
 // ================================
 export async function registrarNegocioFechado(formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) return { success: false, error: "Não autorizado" };
+
   const fromCompany = formData.get('fromCompany') as string;
   const clientName = formData.get('clientName') as string;
   const value = parseFloat(formData.get('value') as string);
   const message = formData.get('message') as string;
 
-  let currentUser = await prisma.user.findFirst();
-  if (!currentUser) {
-    currentUser = await prisma.user.create({
-      data: {
-        name: "Usuário Teste",
-        email: "teste@casadesignserra.com",
-        companyName: "Casa Design Serra",
-        role: "ADMIN"
-      }
-    });
-  }
-
   // Criar a indicação (referral) associada ao negócio
   const referral = await prisma.referral.create({
     data: {
-      fromUserId: currentUser.id,
+      fromUserId: (session.user as any).id,
       clientName: clientName,
       projectDetails: message || null,
       status: "CLOSED_WON",
@@ -150,7 +122,7 @@ export async function registrarNegocioFechado(formData: FormData) {
   // Log de auditoria
   await prisma.auditLog.create({
     data: {
-      userId: currentUser.id,
+      userId: (session.user as any).id,
       action: "REGISTER_CLOSED_BUSINESS",
       details: JSON.stringify({
         businessId: business.id,
