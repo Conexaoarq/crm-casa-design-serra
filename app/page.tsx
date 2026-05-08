@@ -16,10 +16,6 @@ export default function Dashboard() {
       redirect("/login");
     }
     
-    if (session?.user && (session.user as any).role === 'ADMIN') {
-      redirect("/admin");
-    }
-
     async function loadData() {
       const res = await getDashboardData();
       setData(res);

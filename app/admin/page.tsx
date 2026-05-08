@@ -139,7 +139,10 @@ export default async function AdminPage() {
             <h1 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.025em' }}>Painel Administrativo</h1>
             <p style={{ color: 'var(--muted-foreground)' }}>Métricas e controle da Casa Design Serra</p>
           </div>
-          <div style={{ display: 'flex', gap: '1rem' }}>
+            <Link href="/" className="btn-outline" style={{ textDecoration: 'none', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+              Ver Visão do Usuário
+            </Link>
             <a href="/api/export" download className="btn-primary" style={{ textDecoration: 'none', padding: '0.5rem 1rem', backgroundColor: '#333', color: '#fff', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar
