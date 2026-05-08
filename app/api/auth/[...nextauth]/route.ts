@@ -56,8 +56,8 @@ export const authOptions = {
   },
   callbacks: {
     async signIn({ user }: { user: any }) {
-      const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
-      if (admins.includes(user.email)) {
+      const adminEmail = 'casadesignserra639@gmail.com';
+      if (user.email === adminEmail) {
         try {
           await prisma.user.update({
             where: { email: user.email },
@@ -75,9 +75,8 @@ export const authOptions = {
         token.id = user.id;
         token.role = user.role || 'MEMBER';
         
-        // Garante que os administradores sempre tenham a role ADMIN no token
-        const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
-        if (admins.includes(user.email)) {
+        // Garante que o administrador mestre sempre tenha a role ADMIN no token
+        if (user.email === 'casadesignserra639@gmail.com') {
           token.role = 'ADMIN';
         }
       }

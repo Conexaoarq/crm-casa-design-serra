@@ -11,6 +11,11 @@ export default async function Home() {
     redirect("/login");
   }
 
+  // O Admin não usa a interface de usuário, vai direto para a Gestão
+  if ((session.user as any).role === 'ADMIN') {
+    redirect("/admin");
+  }
+
   // Buscar dados reais para o ranking
   const maisIndicadosRaw = await prisma.referral.groupBy({
     by: ['toUserId'],
@@ -57,15 +62,6 @@ export default async function Home() {
   return (
     <div className="container animate-fade-in">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        
-        {/* Botão de Admin condicional */}
-        {(session.user as any).role === 'ADMIN' && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem' }}>
-            <Link href="/admin" className="btn-outline" style={{ fontSize: '0.75rem', padding: '0.5rem 1rem', borderRadius: '20px', border: '1px solid #000' }}>
-              ⚙️ Área de Gestão (ADMIN)
-            </Link>
-          </div>
-        )}
         
         <div style={{ 
           textAlign: 'center', 
