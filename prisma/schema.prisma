@@ -59,6 +59,7 @@ model User {
   companyName   String?
   phone         String?
   role          String    @default("MEMBER") // "MEMBER" or "ADMIN"
+  password      String?   // Para login administrativo
   
   // Relations
   accounts      Account[]

@@ -5,14 +5,27 @@ import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await signIn('email', { email, callbackUrl: '/' });
-    setSent(true);
+    
+    if (isAdminMode) {
+      const result = await signIn('credentials', { 
+        email, 
+        password, 
+        redirect: true, 
+        callbackUrl: '/admin' 
+      });
+    } else {
+      await signIn('email', { email, callbackUrl: '/' });
+      setSent(true);
+    }
+    
     setLoading(false);
   };
 
@@ -25,10 +38,7 @@ export default function LoginPage() {
         <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>Verifique seu E-mail!</h2>
         <p style={{ color: 'var(--muted-foreground)', maxWidth: '400px', lineHeight: 1.6 }}>
           Enviamos um <strong>link mágico</strong> para <strong>{email}</strong>. 
-          Clique no botão dentro do e-mail para acessar a plataforma. Você ficará logado por 3 meses!
-        </p>
-        <p style={{ color: 'var(--muted-foreground)', marginTop: '2rem', fontSize: '0.875rem' }}>
-          Não recebeu? Verifique sua pasta de spam ou tente novamente.
+          Clique no botão dentro do e-mail para acessar a plataforma.
         </p>
       </div>
     );
@@ -48,9 +58,11 @@ export default function LoginPage() {
         </div>
 
         <div className="glass-panel" style={{ padding: '2.5rem', borderRadius: 'var(--radius)', backgroundColor: 'var(--background)' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>Entrar</h1>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+            {isAdminMode ? 'Gestão Admin' : 'Entrar'}
+          </h1>
           <p style={{ color: 'var(--muted-foreground)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-            Digite seu e-mail corporativo para receber o link de acesso.
+            {isAdminMode ? 'Use seu e-mail e senha de gestor.' : 'Digite seu e-mail para receber o link mágico.'}
           </p>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -63,14 +75,36 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               style={{ textAlign: 'center', padding: '1rem' }}
             />
+            
+            {isAdminMode && (
+              <input 
+                type="password" 
+                className="input-field" 
+                placeholder="Sua senha" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ textAlign: 'center', padding: '1rem' }}
+              />
+            )}
+
             <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem' }} disabled={loading}>
-              {loading ? 'Enviando...' : 'Enviar Link Mágico'}
+              {loading ? 'Aguarde...' : (isAdminMode ? 'Acessar Painel' : 'Enviar Link Mágico')}
             </button>
           </form>
+
+          <div style={{ marginTop: '1.5rem' }}>
+            <button 
+              onClick={() => setIsAdminMode(!isAdminMode)}
+              style={{ background: 'none', border: 'none', color: '#0066ff', cursor: 'pointer', fontSize: '0.875rem', textDecoration: 'underline' }}
+            >
+              {isAdminMode ? 'Voltar para Login de Membro' : 'Acesso de Administrador'}
+            </button>
+          </div>
         </div>
 
         <p style={{ marginTop: '2rem', color: 'var(--muted-foreground)', fontSize: '0.75rem' }}>
-          Ao acessar, você concorda com as políticas de privacidade da Casa Design Serra (LGPD).
+          Ao acessar, você concorda com as políticas da Casa Design Serra.
         </p>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import EmailProvider from "next-auth/providers/email";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import prisma from "@/lib/prisma";
 import nodemailer from "nodemailer";
@@ -48,6 +49,31 @@ export const authOptions = {
         }
         console.log("E-mail enviado com sucesso via Resend API!");
       },
+    }),
+    CredentialsProvider({
+      name: "Senha Admin",
+      credentials: {
+        email: { label: "E-mail", type: "email" },
+        password: { label: "Senha", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
+        
+        // Regra específica para os administradores durante a construção
+        const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
+        const masterPass = "casa639"; // Senha temporária de construção
+
+        if (admins.includes(credentials.email) && credentials.password === masterPass) {
+          const user = await prisma.user.upsert({
+            where: { email: credentials.email },
+            update: { role: 'ADMIN' },
+            create: { email: credentials.email, role: 'ADMIN' },
+          });
+          return user;
+        }
+        
+        return null;
+      }
     }),
   ],
   session: {
