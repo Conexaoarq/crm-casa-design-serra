@@ -86,7 +86,9 @@ model Referral {
   projectDetails String?
   architectName  String?
   
-  status         String   @default("PENDING") // PENDING, CLOSED_WON, CLOSED_LOST
+  status         String   @default("PENDING") // PENDING, CONTACTED, QUOTED, CLOSED_WON, CLOSED_LOST
+  contactMade    Boolean  @default(false)
+  budgetGenerated Boolean @default(false)
   
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

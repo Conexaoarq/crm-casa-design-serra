@@ -119,21 +119,70 @@ export async function registrarNegocioFechado(formData: FormData) {
     }
   });
 
-  // Log de auditoria
-  await prisma.auditLog.create({
-    data: {
-      userId: (session.user as any).id,
-      action: "REGISTER_CLOSED_BUSINESS",
-      details: JSON.stringify({
-        businessId: business.id,
-        fromCompany: fromCompany,
-        clientName: clientName,
-        value: value,
-      })
-    }
+  // Buscar todos os usuários para o broadcast (opcional: filtrar por quem quer receber)
+  const allUsers = await prisma.user.findMany({
+    select: { email: true }
   });
+  const recipientEmails = allUsers.map(u => u.email).filter(Boolean) as string[];
+
+  // Broadcast via Resend
+  if (recipientEmails.length > 0) {
+    try {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "notificacoes@resend.dev", // Trocar pelo domínio oficial depois
+          to: recipientEmails,
+          subject: "🎉 NEGÓCIO FECHADO! O Ecossistema Casa Design Serra Multiplicou!",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #d4af37; border-radius: 12px; background-color: #fff;">
+              <div style="text-align: center; margin-bottom: 20px;">
+                <h1 style="color: #000; font-size: 24px; margin: 0;">NEGÓCIO FECHADO!</h1>
+                <p style="color: #d4af37; font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Ecossistema Casa Design Serra</p>
+              </div>
+              <p style="color: #333; line-height: 1.6; font-size: 16px;">Temos o prazer de anunciar que mais um negócio foi concretizado através da nossa plataforma!</p>
+              <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #000;">
+                <p style="margin: 5px 0;"><strong>Empresa:</strong> ${fromCompany}</p>
+                <p style="margin: 5px 0;"><strong>Cliente:</strong> ${clientName}</p>
+                <p style="margin: 5px 0;"><strong>Valor:</strong> ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)}</p>
+              </div>
+              <p style="color: #555; font-style: italic; text-align: center; margin-top: 20px;">"Juntos somos mais fortes. Continue multiplicando!"</p>
+            </div>
+          `,
+        }),
+      });
+    } catch (e) {
+      console.error("Erro no broadcast de e-mail:", e);
+    }
+  }
 
   return { success: true, businessId: business.id };
+}
+
+// ===========================================
+// SERVER ACTION: Atualizar Status de Indicação
+// ===========================================
+export async function atualizarStatusIndicacao(referralId: string, data: { contactMade?: boolean, budgetGenerated?: boolean, status?: string }) {
+  const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== 'ADMIN') return { success: false, error: "Apenas administradores podem atualizar o status detalhado" };
+
+  try {
+    const updated = await prisma.referral.update({
+      where: { id: referralId },
+      data: {
+        ...data,
+        updatedAt: new Date()
+      }
+    });
+
+    return { success: true, referral: updated };
+  } catch (e) {
+    return { success: false, error: "Erro ao atualizar indicação" };
+  }
 }
 
 // ================================
