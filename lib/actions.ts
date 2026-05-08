@@ -135,8 +135,9 @@ export async function registrarNegocioFechado(formData: FormData) {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "notificacoes@resend.dev", // Trocar pelo domínio oficial depois
+          from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
           to: recipientEmails,
+          reply_to: "aabergamo@gmail.com",
           subject: "🎉 NEGÓCIO FECHADO! O Ecossistema Casa Design Serra Multiplicou!",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #d4af37; border-radius: 12px; background-color: #fff;">

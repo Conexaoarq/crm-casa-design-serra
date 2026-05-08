@@ -70,8 +70,9 @@ export default async function MembrosPage() {
           Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: "onboarding@resend.dev",
+          from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
           to: email,
+          reply_to: "aabergamo@gmail.com",
           subject: "Seu Acesso Exclusivo - Casa Design Serra",
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
