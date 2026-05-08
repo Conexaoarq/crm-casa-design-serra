@@ -46,6 +46,53 @@ export default async function MembrosPage() {
     }
   }
 
+  async function enviarConvite(email: string) {
+    'use server';
+    // Gerar um token único para o link mágico (simulando o NextAuth para agilidade)
+    const token = Math.random().toString(36).substring(2) + Math.random().toString(36).substring(2);
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+
+    try {
+      // Criar o token de verificação no banco para o NextAuth reconhecer
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token: token,
+          expires: expires,
+        }
+      });
+
+      const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?callbackUrl=${encodeURIComponent('/')}&token=${token}&email=${encodeURIComponent(email)}`;
+
+      // Enviar via Resend
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "onboarding@resend.dev",
+          to: email,
+          subject: "Seu Acesso Exclusivo - Casa Design Serra",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+              <h2 style="color: #333;">Olá!</h2>
+              <p style="color: #555;">A diretoria da Casa Design Serra liberou seu acesso exclusivo à plataforma.</p>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${url}" style="background-color: #000; color: #fff; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">ACESSAR PLATAFORMA</a>
+              </div>
+              <p style="font-size: 12px; color: #888;">Este link é único e expira em 24 horas.</p>
+            </div>
+          `,
+        }),
+      });
+      console.log("Convite enviado com sucesso para:", email);
+    } catch (e) {
+      console.error("Erro ao enviar convite:", e);
+    }
+  }
+
   return (
     <div className="container animate-fade-in">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -96,11 +143,20 @@ export default async function MembrosPage() {
                     </span>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    {membro.email !== 'casadesignserra639@gmail.com' && (
-                      <form action={async () => { 'use server'; await deleteMembro(membro.id); }}>
-                        <button type="submit" style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem' }}>Excluir</button>
-                      </form>
-                    )}
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      {membro.role !== 'ADMIN' && (
+                        <form action={async () => { 'use server'; await enviarConvite(membro.email!); }}>
+                          <button type="submit" className="btn-outline" style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderColor: '#000', color: '#000' }}>
+                            ENVIAR ACESSO
+                          </button>
+                        </form>
+                      )}
+                      {membro.email !== 'casadesignserra639@gmail.com' && (
+                        <form action={async () => { 'use server'; await deleteMembro(membro.id); }}>
+                          <button type="submit" style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '0.4rem' }}>Excluir</button>
+                        </form>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
