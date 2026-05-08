@@ -54,7 +54,8 @@ export const authOptions = {
       name: "Senha Admin",
       credentials: {
         email: { label: "E-mail", type: "email" },
-        password: { label: "Senha", type: "password" }
+        password: { label: "Senha", type: "password" },
+        inviteToken: { label: "Token", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email) return null;
