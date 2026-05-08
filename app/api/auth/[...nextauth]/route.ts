@@ -83,17 +83,30 @@ export const authOptions = {
   callbacks: {
     async signIn({ user }: { user: any }) {
       const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
+      
+      // 1. Se for Admin, permite sempre
       if (admins.includes(user.email)) {
         try {
           await prisma.user.update({
             where: { email: user.email },
             data: { role: 'ADMIN' },
           });
-          console.log("LOG: Usuário promovido a ADMIN:", user.email);
         } catch (e) {
-          console.log("LOG: Aguardando criação do usuário para promover a ADMIN.");
+          // Se não existir, o adapter criará ou trataremos na próxima tentativa
         }
+        return true;
       }
+
+      // 2. Para usuários comuns, verificamos se o Admin já os cadastrou
+      const userExists = await prisma.user.findUnique({
+        where: { email: user.email }
+      });
+
+      if (!userExists) {
+        console.log("ACESSO NEGADO: E-mail não cadastrado pelo Admin:", user.email);
+        return false; // Bloqueia o envio do link mágico e o login
+      }
+
       return true;
     },
     async jwt({ token, user }: { token: any; user: any }) {
