@@ -18,24 +18,30 @@ export async function GET() {
     orderBy: { createdAt: 'desc' }
   });
 
-  // Criar CSV
-  let csv = 'Data,De,Para,Cliente,Status,Valor\n';
+  // Criar CSV com BOM para Excel (UTF-8) e separador ponto-e-vírgula
+  let csv = '\uFEFF';
+  csv += 'Data;De (Indicador);Para (Destino);Cliente;Status;Contato Realizado;Orçamento Gerado;Valor Fechado\n';
   
   referrals.forEach(r => {
-    const date = r.createdAt.toLocaleDateString();
-    const from = r.fromUser.companyName || r.fromUser.email;
-    const to = r.toUser?.companyName || 'Todos';
+    const date = new Date(r.createdAt).toLocaleDateString('pt-BR');
+    const from = r.fromUser.companyName || r.fromUser.name || r.fromUser.email;
+    const to = r.toUser?.companyName || r.toUser?.name || 'Grupo Aberto';
     const client = r.clientName;
     const status = r.status;
-    const value = (r.closedBusiness as any)?.[0]?.value || 0;
+    const contact = (r as any).contactMade ? 'SIM' : 'NÃO';
+    const budget = (r as any).budgetGenerated ? 'SIM' : 'NÃO';
+    const value = r.closedBusiness?.value || 0;
     
-    csv += `${date},"${from}","${to}","${client}",${status},${value}\n`;
+    // Formatar valor para o padrão Excel (ponto para milhar e vírgula para decimal se necessário, mas aqui usaremos string)
+    const formattedValue = value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+    
+    csv += `${date};"${from}";"${to}";"${client}";${status};${contact};${budget};${formattedValue}\n`;
   });
 
   return new NextResponse(csv, {
     headers: {
-      'Content-Type': 'text/csv',
-      'Content-Disposition': 'attachment; filename=relatorio-crm-casa-design.csv'
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': 'attachment; filename=relatorio_negocios_cds.csv'
     }
   });
 }
