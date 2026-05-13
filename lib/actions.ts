@@ -263,6 +263,22 @@ export async function getDashboardData() {
     };
   }));
 
+  // Ranking: Quem mais indicou (enviou mais indicações)
+  const maioresIndicadoresRaw = await prisma.referral.groupBy({
+    by: ['fromUserId'],
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 5,
+  });
+
+  const maioresIndicadores = await Promise.all(maioresIndicadoresRaw.map(async (item) => {
+    const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
+    return {
+      nome: user?.companyName || user?.name || 'Membro',
+      count: item._count.id
+    };
+  }));
+
   // Ranking: Maiores geradores de VALOR (soma de negócios fechados por indicador)
   const allClosedDeals = await prisma.closedBusiness.findMany({
     include: {
@@ -301,6 +317,7 @@ export async function getDashboardData() {
       createdAt: p.createdAt.toISOString(),
     })),
     maisIndicados,
+    maioresIndicadores,
     maioresValores,
     totalNegocios: {
       count: totalNegocios._count.id,

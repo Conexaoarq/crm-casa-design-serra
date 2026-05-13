@@ -31,13 +31,6 @@ export default function Dashboard() {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>Carregando seu Dashboard...</div>;
   }
 
-  const interactionsMap: Record<string, string> = {
-    CREATE_REFERRAL: 'Você enviou uma nova indicação',
-    REQUEST_LEAD: 'Você solicitou um lead quente',
-    LOGIN: 'Você acessou o sistema',
-    REGISTER_CLOSED_BUSINESS: 'Você registrou um negócio fechado',
-  };
-
   return (
     <div className="container animate-fade-in" style={{ paddingBottom: '5rem' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -85,12 +78,83 @@ export default function Dashboard() {
             </div>
           </Link>
 
-
-
         </div>
 
-        {/* Seção de Rankings */}
+        {/* ========== BANNER DESTAQUE: Ranking por Valor Gerado ========== */}
+        <div style={{ 
+          background: 'linear-gradient(135deg, #1a1a1a 0%, #000 100%)', 
+          borderRadius: '24px', 
+          padding: '2.5rem', 
+          marginBottom: '2rem',
+          color: '#fff',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
+            <span style={{ fontSize: '1.5rem' }}>💰</span>
+            <h3 style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em' }}>Ranking por Valor Gerado</h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {data?.maioresValores?.length > 0 ? data.maioresValores.map((item: any, i: number) => (
+              <div key={i} style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between', 
+                padding: '1rem 1.25rem', 
+                backgroundColor: i === 0 ? 'rgba(212, 175, 55, 0.15)' : 'rgba(255,255,255,0.05)', 
+                borderRadius: '12px',
+                border: i === 0 ? '1px solid rgba(212, 175, 55, 0.3)' : '1px solid rgba(255,255,255,0.05)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <span style={{ 
+                    fontWeight: 900, 
+                    color: i === 0 ? '#d4af37' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.3)', 
+                    fontSize: '1.25rem',
+                    width: '2rem',
+                    textAlign: 'center'
+                  }}>{i + 1}</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.nome}</span>
+                </div>
+                <span style={{ 
+                  fontWeight: 900, 
+                  fontSize: '0.9rem', 
+                  color: '#d4af37',
+                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  padding: '0.3rem 0.75rem',
+                  borderRadius: '8px'
+                }}>
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
+                </span>
+              </div>
+            )) : (
+              <p style={{ fontSize: '0.9rem', opacity: 0.5, textAlign: 'center', padding: '1.5rem 0' }}>
+                Nenhum negócio fechado ainda. Seja o primeiro! 🚀
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* ========== 2 Rankings lado a lado ========== */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
+          
+          {/* Ranking: Quem mais indicou */}
+          <div className="glass-panel" style={{ padding: '2rem' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              🚀 Quem Mais Indicou
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {data?.maioresIndicadores?.length > 0 ? data.maioresIndicadores.map((item: any, i: number) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: i === 0 ? '#f8f8f8' : 'transparent', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <span style={{ fontWeight: 800, color: i === 0 ? '#000' : '#ccc' }}>{i + 1}</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
+                  </div>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.count} ind.</span>
+                </div>
+              )) : <p style={{ fontSize: '0.8rem', color: '#888' }}>Nenhuma indicação ainda.</p>}
+            </div>
+          </div>
+
+          {/* Ranking: Mais indicados (receberam mais) */}
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               🏆 Mais Indicados
@@ -102,28 +166,9 @@ export default function Dashboard() {
                     <span style={{ fontWeight: 800, color: i === 0 ? '#000' : '#ccc' }}>{i + 1}</span>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
                   </div>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.pts} pts</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.count} rec.</span>
                 </div>
               )) : <p style={{ fontSize: '0.8rem', color: '#888' }}>Nenhuma indicação ainda.</p>}
-            </div>
-          </div>
-
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              💰 Ranking por Valor Gerado
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {data?.maioresValores?.length > 0 ? data.maioresValores.map((item: any, i: number) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: i === 0 ? '#f8f8f8' : 'transparent', borderRadius: '8px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ fontWeight: 800, color: i === 0 ? '#d4af37' : '#ccc' }}>{i + 1}</span>
-                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
-                  </div>
-                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d' }}>
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
-                  </span>
-                </div>
-              )) : <p style={{ fontSize: '0.8rem', color: '#888' }}>Nenhum negócio fechado ainda.</p>}
             </div>
           </div>
         </div>

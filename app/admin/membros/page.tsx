@@ -46,6 +46,20 @@ export default async function MembrosPage() {
     }
   }
 
+  async function toggleDiretor(id: string, currentRole: string) {
+    'use server';
+    try {
+      const newRole = currentRole === 'DIRETOR' ? 'MEMBER' : 'DIRETOR';
+      await prisma.user.update({
+        where: { id },
+        data: { role: newRole },
+      });
+      revalidatePath('/admin/membros');
+    } catch (e) {
+      console.error("Erro ao alterar papel:", e);
+    }
+  }
+
   async function enviarConvite(email: string) {
     'use server';
     // Gerar um token de convite simples e seguro
@@ -92,6 +106,8 @@ export default async function MembrosPage() {
     }
   }
 
+  const diretores = membros.filter(m => m.role === 'DIRETOR');
+
   return (
     <div className="container animate-fade-in">
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
@@ -107,7 +123,7 @@ export default async function MembrosPage() {
         </p>
 
         {/* Resumo do Grupo */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #000' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Membros Cadastrados</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.length} <span style={{ fontSize: '1rem', color: '#ccc', fontWeight: 400 }}>/ 50</span></div>
@@ -115,6 +131,10 @@ export default async function MembrosPage() {
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #00c000' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Convites Enviados</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.filter(m => m.role !== 'ADMIN').length}</div>
+          </div>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #d4af37' }}>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Diretores</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{diretores.length}</div>
           </div>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #aaa' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vagas Disponíveis</div>
@@ -155,12 +175,38 @@ export default async function MembrosPage() {
                   <td style={{ padding: '1rem', fontWeight: 600 }}>{membro.companyName || '---'}</td>
                   <td style={{ padding: '1rem', color: 'var(--muted-foreground)' }}>{membro.email}</td>
                   <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{ fontSize: '0.7rem', padding: '2px 8px', borderRadius: '10px', backgroundColor: membro.role === 'ADMIN' ? '#000' : '#eee', color: membro.role === 'ADMIN' ? '#fff' : '#000' }}>
+                    <span style={{ 
+                      fontSize: '0.7rem', 
+                      padding: '2px 8px', 
+                      borderRadius: '10px', 
+                      backgroundColor: membro.role === 'ADMIN' ? '#000' : membro.role === 'DIRETOR' ? '#d4af37' : '#eee', 
+                      color: membro.role === 'ADMIN' ? '#fff' : membro.role === 'DIRETOR' ? '#fff' : '#000',
+                      fontWeight: 700
+                    }}>
                       {membro.role}
                     </span>
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                      {/* Botão DIRETOR - toggle on/off */}
+                      {membro.role !== 'ADMIN' && (
+                        <form action={async () => { 'use server'; await toggleDiretor(membro.id, membro.role); }}>
+                          <button type="submit" style={{ 
+                            fontSize: '0.7rem', 
+                            padding: '0.4rem 0.8rem', 
+                            borderRadius: '6px',
+                            border: membro.role === 'DIRETOR' ? '1px solid #d4af37' : '1px solid #ddd',
+                            backgroundColor: membro.role === 'DIRETOR' ? '#fef3c7' : 'transparent',
+                            color: membro.role === 'DIRETOR' ? '#92400e' : '#888',
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                          }}>
+                            {membro.role === 'DIRETOR' ? '👁️ REMOVER DIRETOR' : '👁️ TORNAR DIRETOR'}
+                          </button>
+                        </form>
+                      )}
+
+                      {/* Botão ENVIAR ACESSO */}
                       {membro.role !== 'ADMIN' && (
                         <form action={async () => { 'use server'; await enviarConvite(membro.email!); }}>
                           <button type="submit" className="btn-outline" style={{ fontSize: '0.75rem', padding: '0.4rem 0.8rem', borderColor: '#000', color: '#000' }}>
@@ -168,7 +214,9 @@ export default async function MembrosPage() {
                           </button>
                         </form>
                       )}
-                      {membro.email !== 'casadesignserra639@gmail.com' && (
+
+                      {/* Botão EXCLUIR */}
+                      {membro.email !== 'casadesignserra639@gmail.com' && membro.email !== 'aabergamo@gmail.com' && (
                         <form action={async () => { 'use server'; await deleteMembro(membro.id); }}>
                           <button type="submit" style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '0.4rem' }}>Excluir</button>
                         </form>

@@ -130,6 +130,7 @@ export const authOptions = {
     async jwt({ token, user }: { token: any; user: any }) {
       if (user) {
         token.id = user.id;
+        token.email = user.email;
         token.role = user.role || 'MEMBER';
         
         // Garante que os administradores mestre sempre tenham a role ADMIN no token
@@ -138,6 +139,22 @@ export const authOptions = {
           token.role = 'ADMIN';
         }
       }
+      
+      // Atualizar role do banco a cada refresh para refletir mudanças de DIRETOR em tempo real
+      if (token.email) {
+        try {
+          const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
+          if (!admins.includes(token.email)) {
+            const dbUser = await prisma.user.findUnique({ where: { email: token.email } });
+            if (dbUser) {
+              token.role = dbUser.role;
+            }
+          }
+        } catch (e) {
+          // Silently fail - keep existing token role
+        }
+      }
+      
       return token;
     },
     async session({ session, token }: { session: any; token: any }) {

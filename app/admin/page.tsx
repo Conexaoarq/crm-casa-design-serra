@@ -109,17 +109,40 @@ const ACTION_LABELS: Record<string, string> = {
 
 export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
+  const userRole = (session?.user as any)?.role;
 
-  if (!session || (session.user as any).role !== 'ADMIN') {
+  if (!session || (userRole !== 'ADMIN' && userRole !== 'DIRETOR')) {
     redirect("/login");
   }
 
+  const isAdmin = userRole === 'ADMIN';
   const data = await getAdminData();
   if (!data) return <div>Erro ao carregar dados do painel.</div>;
 
   return (
     <div className="container animate-fade-in" style={{ paddingBottom: '5rem' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+
+        {/* Banner de visualização para diretores */}
+        {!isAdmin && (
+          <div style={{ 
+            padding: '1rem 1.5rem', 
+            backgroundColor: '#fef3c7', 
+            border: '1px solid #fde68a', 
+            borderRadius: '12px', 
+            marginTop: '1.5rem', 
+            marginBottom: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            color: '#92400e'
+          }}>
+            <span>👁️</span>
+            Modo Visualização — Você está acessando como Diretor. Apenas leitura.
+          </div>
+        )}
         
         {/* Header Profissional */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4rem', marginTop: '2rem' }}>
@@ -133,14 +156,18 @@ export default async function AdminDashboard() {
               Visão do Usuário
             </Link>
             
-            <a href="/api/export" download style={{ textDecoration: 'none', padding: '0.75rem 1.5rem', backgroundColor: '#333', color: '#fff', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Exportar CSV
-            </a>
+            {isAdmin && (
+              <>
+                <a href="/api/export" download style={{ textDecoration: 'none', padding: '0.75rem 1.5rem', backgroundColor: '#333', color: '#fff', borderRadius: '100px', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600, fontSize: '0.875rem' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  Exportar CSV
+                </a>
 
-            <Link href="/admin/membros" style={{ textDecoration: 'none', padding: '0.75rem 2rem', backgroundColor: '#000', color: '#fff', borderRadius: '100px', fontWeight: 700, fontSize: '0.875rem' }}>
-              GESTÃO DE MEMBROS
-            </Link>
+                <Link href="/admin/membros" style={{ textDecoration: 'none', padding: '0.75rem 2rem', backgroundColor: '#000', color: '#fff', borderRadius: '100px', fontWeight: 700, fontSize: '0.875rem' }}>
+                  GESTÃO DE MEMBROS
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
