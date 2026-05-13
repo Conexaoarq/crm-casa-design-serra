@@ -85,16 +85,7 @@ export default function Dashboard() {
             </div>
           </Link>
 
-          <Link href="/negocio-fechado" style={{ textDecoration: 'none', gridColumn: '1 / -1' }}>
-            <div className="glass-panel" style={{ padding: '1.5rem 2rem', borderRadius: '16px', backgroundColor: '#000', color: '#fff', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div style={{ fontSize: '2rem' }}>💰</div>
-              <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '0.25rem' }}>Registrar Negócio Fechado</h3>
-                <p style={{ fontSize: '0.85rem', opacity: 0.7 }}>Comemore um sucesso com o grupo e gere pontos no ranking.</p>
-              </div>
-              <div style={{ fontWeight: 700, fontSize: '0.8rem' }}>REGISTRAR &rarr;</div>
-            </div>
-          </Link>
+
 
         </div>
 
@@ -119,18 +110,20 @@ export default function Dashboard() {
 
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🚀 Maiores Indicadores
+              💰 Ranking por Valor Gerado
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {data?.maioresIndicadores?.length > 0 ? data.maioresIndicadores.map((item: any, i: number) => (
+              {data?.maioresValores?.length > 0 ? data.maioresValores.map((item: any, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem', backgroundColor: i === 0 ? '#f8f8f8' : 'transparent', borderRadius: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <span style={{ fontWeight: 800, color: i === 0 ? '#000' : '#ccc' }}>{i + 1}</span>
+                    <span style={{ fontWeight: 800, color: i === 0 ? '#d4af37' : '#ccc' }}>{i + 1}</span>
                     <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
                   </div>
-                  <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.pts} pts</span>
+                  <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803d' }}>
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
+                  </span>
                 </div>
-              )) : <p style={{ fontSize: '0.8rem', color: '#888' }}>Nenhuma indicação ainda.</p>}
+              )) : <p style={{ fontSize: '0.8rem', color: '#888' }}>Nenhum negócio fechado ainda.</p>}
             </div>
           </div>
         </div>

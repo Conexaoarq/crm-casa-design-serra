@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
-import { atualizarStatusIndicacao } from "@/lib/actions";
+import AdminTableRow from "./AdminTableRow";
 
 export const dynamic = 'force-dynamic';
 
@@ -17,6 +17,7 @@ async function getAdminData() {
     const totalIndicacoes = await prisma.referral.count();
     const totalMembros = await prisma.user.count();
 
+    // Ranking: Mais indicados (receberam mais indicações)
     const maisIndicadosRaw = await prisma.referral.groupBy({
       by: ['toUserId'],
       where: { toUserId: { not: null } },
@@ -29,6 +30,30 @@ async function getAdminData() {
       const user = await prisma.user.findUnique({ where: { id: item.toUserId! } });
       return { pos: i + 1, nome: user?.companyName || user?.name || 'Membro', pts: item._count.id };
     }));
+
+    // Ranking: Maiores geradores de VALOR
+    const allClosedDeals = await prisma.closedBusiness.findMany({
+      include: {
+        referral: {
+          include: { fromUser: true }
+        }
+      }
+    });
+
+    const valorPorIndicador: Record<string, { nome: string; valor: number }> = {};
+    for (const deal of allClosedDeals) {
+      const userId = deal.referral.fromUserId;
+      const nome = deal.referral.fromUser.companyName || deal.referral.fromUser.name || 'Membro';
+      if (!valorPorIndicador[userId]) {
+        valorPorIndicador[userId] = { nome, valor: 0 };
+      }
+      valorPorIndicador[userId].valor += deal.value;
+    }
+
+    const maioresValores = Object.values(valorPorIndicador)
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 10)
+      .map((item, i) => ({ pos: i + 1, ...item }));
 
     const indicacoesCompletas = await prisma.referral.findMany({
       include: {
@@ -53,8 +78,20 @@ async function getAdminData() {
         totalMembros
       },
       maisIndicados,
+      maioresValores,
       ultimosLogs,
-      indicacoes: indicacoesCompletas
+      indicacoes: indicacoesCompletas.map(ind => ({
+        id: ind.id,
+        createdAt: ind.createdAt.toISOString(),
+        fromUserName: ind.fromUser.companyName || ind.fromUser.name || 'Membro',
+        toUserName: ind.toUser?.companyName || ind.toUser?.name || null,
+        clientName: ind.clientName,
+        clientPhone: ind.clientPhone,
+        contactMade: ind.contactMade,
+        budgetGenerated: ind.budgetGenerated,
+        status: ind.status,
+        closedValue: ind.closedBusiness?.value || null,
+      }))
     };
   } catch (e) {
     console.error("Erro ao buscar dados admin:", e);
@@ -67,6 +104,7 @@ const ACTION_LABELS: Record<string, string> = {
   REQUEST_LEAD: 'Pedido de Lead',
   LOGIN: 'Acesso ao Sistema',
   REGISTER_CLOSED_BUSINESS: 'Negócio Fechado',
+  CLOSE_DEAL: 'Negócio Fechado',
 };
 
 export default async function AdminDashboard() {
@@ -150,70 +188,19 @@ export default async function AdminDashboard() {
               </thead>
               <tbody>
                 {data.indicacoes.map((ind) => (
-                  <tr key={ind.id} style={{ backgroundColor: '#fcfcfc', transition: 'all 0.2s' }}>
-                    <td style={{ padding: '1.25rem 1rem', borderRadius: '12px 0 0 12px', fontSize: '0.875rem' }}>
-                      {new Date(ind.createdAt).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.875rem' }}>
-                      {ind.fromUser.companyName || ind.fromUser.name}
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.875rem', color: ind.toUser ? '#000' : '#888' }}>
-                      {ind.toUser?.companyName || ind.toUser?.name || 'Grupo Aberto'}
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem', fontSize: '0.875rem' }}>
-                      <div style={{ fontWeight: 700 }}>{ind.clientName}</div>
-                      <div style={{ fontSize: '0.75rem', color: '#888' }}>{ind.clientPhone || 'Sem tel.'}</div>
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <span style={{ 
-                          padding: '0.25rem 0.75rem', 
-                          borderRadius: '100px', 
-                          fontSize: '0.7rem', 
-                          fontWeight: 800,
-                          backgroundColor: ind.contactMade ? '#e6fffa' : '#f5f5f5',
-                          color: ind.contactMade ? '#0694a2' : '#aaa'
-                        }}>CONTATO</span>
-                        <span style={{ 
-                          padding: '0.25rem 0.75rem', 
-                          borderRadius: '100px', 
-                          fontSize: '0.7rem', 
-                          fontWeight: 800,
-                          backgroundColor: ind.budgetGenerated ? '#ebf8ff' : '#f5f5f5',
-                          color: ind.budgetGenerated ? '#3182ce' : '#aaa'
-                        }}>ORÇAMENTO</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem', fontWeight: 800, fontSize: '0.875rem' }}>
-                      {ind.closedBusiness ? 
-                        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ind.closedBusiness.value) : 
-                        '-'
-                      }
-                    </td>
-                    <td style={{ padding: '1.25rem 1rem', borderRadius: '0 12px 12px 0' }}>
-                      <form action={async () => {
-                        'use server';
-                        await atualizarStatusIndicacao(ind.id, { contactMade: true });
-                        redirect('/admin');
-                      }}>
-                        <button type="submit" style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline' }}>
-                          MARCAR CONTATO
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
+                  <AdminTableRow key={ind.id} ind={ind} />
                 ))}
               </tbody>
             </table>
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem' }}>
-          {/* Top Indicadores */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
+          {/* Top Indicadores por Quantidade */}
           <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #f0f0f0' }}>
-            <h3 style={{ fontWeight: 800, marginBottom: '2rem', fontSize: '1.25rem' }}>Ranking de Indicações</h3>
+            <h3 style={{ fontWeight: 800, marginBottom: '2rem', fontSize: '1.25rem' }}>🏆 Ranking de Indicações</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {data.maisIndicados.map((item) => (
+              {data.maisIndicados.length > 0 ? data.maisIndicados.map((item) => (
                 <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #f9f9f9' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                     <span style={{ fontWeight: 900, color: item.pos === 1 ? '#000' : '#ddd', fontSize: '1.25rem' }}>{item.pos}</span>
@@ -221,12 +208,30 @@ export default async function AdminDashboard() {
                   </div>
                   <span style={{ fontWeight: 900, backgroundColor: '#000', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>{item.pts}</span>
                 </div>
-              ))}
+              )) : <p style={{ fontSize: '0.85rem', color: '#888' }}>Nenhuma indicação ainda.</p>}
+            </div>
+          </div>
+
+          {/* Top Geradores de Valor */}
+          <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #f0f0f0' }}>
+            <h3 style={{ fontWeight: 800, marginBottom: '2rem', fontSize: '1.25rem' }}>💰 Ranking por Valor Gerado</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {data.maioresValores.length > 0 ? data.maioresValores.map((item) => (
+                <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #f9f9f9' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <span style={{ fontWeight: 900, color: item.pos === 1 ? '#d4af37' : '#ddd', fontSize: '1.25rem' }}>{item.pos}</span>
+                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.nome}</span>
+                  </div>
+                  <span style={{ fontWeight: 900, backgroundColor: '#1a1a1a', color: '#d4af37', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
+                  </span>
+                </div>
+              )) : <p style={{ fontSize: '0.85rem', color: '#888' }}>Nenhum negócio fechado ainda.</p>}
             </div>
           </div>
 
           {/* Atividade Recente */}
-          <div style={{ background: '#fff', borderRadius: '24px', padding: '0', border: '1px solid #f0f0f0', overflow: 'hidden' }}>
+          <div style={{ background: '#fff', borderRadius: '24px', padding: '0', border: '1px solid #f0f0f0', overflow: 'hidden', gridColumn: '1 / -1' }}>
             <div style={{ padding: '2rem', borderBottom: '1px solid #f0f0f0' }}>
               <h3 style={{ fontWeight: 800, fontSize: '1.25rem' }}>Atividade Recente</h3>
             </div>

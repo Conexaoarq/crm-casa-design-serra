@@ -187,6 +187,54 @@ export async function atualizarStatusIndicacao(referralId: string, data: { conta
 }
 
 // ================================
+// SERVER ACTION: Fechar Negócio Direto (da tabela de acompanhamento)
+// ================================
+export async function fecharNegocioDireto(referralId: string, value: number) {
+  const session = await getServerSession(authOptions);
+  if (!session) return { success: false, error: "Não autorizado" };
+
+  try {
+    // Verificar se já existe um negócio fechado para esta indicação
+    const existing = await prisma.closedBusiness.findUnique({
+      where: { referralId }
+    });
+    if (existing) return { success: false, error: "Negócio já foi registrado para esta indicação" };
+
+    // Criar o registro do negócio fechado
+    await prisma.closedBusiness.create({
+      data: {
+        referralId,
+        value,
+      }
+    });
+
+    // Atualizar o status da indicação
+    await prisma.referral.update({
+      where: { id: referralId },
+      data: {
+        status: 'CLOSED_WON',
+        budgetGenerated: true,
+        updatedAt: new Date(),
+      }
+    });
+
+    // Registrar no log de auditoria
+    await prisma.auditLog.create({
+      data: {
+        userId: (session.user as any).id,
+        action: 'CLOSE_DEAL',
+        details: JSON.stringify({ referralId, value })
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    console.error('Erro ao fechar negócio:', e);
+    return { success: false, error: "Erro ao registrar o negócio fechado" };
+  }
+}
+
+// ================================
 // SERVER ACTION: Buscar dados para o Dashboard
 // ================================
 export async function getDashboardData() {
@@ -215,21 +263,29 @@ export async function getDashboardData() {
     };
   }));
 
-  // Ranking: Maiores indicadores (enviaram mais indicações)
-  const maioresIndicadoresRaw = await prisma.referral.groupBy({
-    by: ['fromUserId'],
-    _count: { id: true },
-    orderBy: { _count: { id: 'desc' } },
-    take: 5,
+  // Ranking: Maiores geradores de VALOR (soma de negócios fechados por indicador)
+  const allClosedDeals = await prisma.closedBusiness.findMany({
+    include: {
+      referral: {
+        include: { fromUser: true }
+      }
+    }
   });
 
-  const maioresIndicadores = await Promise.all(maioresIndicadoresRaw.map(async (item) => {
-    const user = await prisma.user.findUnique({ where: { id: item.fromUserId } });
-    return {
-      nome: user?.companyName || user?.name || 'Membro',
-      count: item._count.id
-    };
-  }));
+  // Agrupar por fromUser e somar valores
+  const valorPorIndicador: Record<string, { nome: string; valor: number }> = {};
+  for (const deal of allClosedDeals) {
+    const userId = deal.referral.fromUserId;
+    const nome = deal.referral.fromUser.companyName || deal.referral.fromUser.name || 'Membro';
+    if (!valorPorIndicador[userId]) {
+      valorPorIndicador[userId] = { nome, valor: 0 };
+    }
+    valorPorIndicador[userId].valor += deal.value;
+  }
+
+  const maioresValores = Object.values(valorPorIndicador)
+    .sort((a, b) => b.valor - a.valor)
+    .slice(0, 5);
 
   // Total de negócios fechados
   const totalNegocios = await prisma.closedBusiness.aggregate({
@@ -244,6 +300,8 @@ export async function getDashboardData() {
       req: p.projectDetails || p.clientName,
       createdAt: p.createdAt.toISOString(),
     })),
+    maisIndicados,
+    maioresValores,
     totalNegocios: {
       count: totalNegocios._count.id,
       value: totalNegocios._sum.value || 0,
