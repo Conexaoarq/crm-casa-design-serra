@@ -46,10 +46,10 @@ export default async function MembrosPage() {
     }
   }
 
-  async function toggleDiretor(id: string, currentRole: string) {
+  async function toggleConselheiro(id: string, currentRole: string) {
     'use server';
     try {
-      const newRole = currentRole === 'DIRETOR' ? 'MEMBER' : 'DIRETOR';
+      const newRole = currentRole === 'CONSELHEIRO' ? 'MEMBER' : 'CONSELHEIRO';
       await prisma.user.update({
         where: { id },
         data: { role: newRole },
@@ -106,7 +106,7 @@ export default async function MembrosPage() {
     }
   }
 
-  const diretores = membros.filter(m => m.role === 'DIRETOR');
+  const conselheiros = membros.filter(m => m.role === 'CONSELHEIRO');
 
   return (
     <div className="container animate-fade-in">
@@ -133,8 +133,8 @@ export default async function MembrosPage() {
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.filter(m => m.role !== 'ADMIN').length}</div>
           </div>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #d4af37' }}>
-            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Diretores</div>
-            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{diretores.length}</div>
+            <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Conselheiros</div>
+            <div style={{ fontSize: '2rem', fontWeight: 800 }}>{conselheiros.length}</div>
           </div>
           <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #aaa' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vagas Disponíveis</div>
@@ -179,8 +179,8 @@ export default async function MembrosPage() {
                       fontSize: '0.7rem', 
                       padding: '2px 8px', 
                       borderRadius: '10px', 
-                      backgroundColor: membro.role === 'ADMIN' ? '#000' : membro.role === 'DIRETOR' ? '#d4af37' : '#eee', 
-                      color: membro.role === 'ADMIN' ? '#fff' : membro.role === 'DIRETOR' ? '#fff' : '#000',
+                      backgroundColor: membro.role === 'ADMIN' ? '#000' : membro.role === 'CONSELHEIRO' ? '#d4af37' : '#eee', 
+                      color: membro.role === 'ADMIN' ? '#fff' : membro.role === 'CONSELHEIRO' ? '#fff' : '#000',
                       fontWeight: 700
                     }}>
                       {membro.role}
@@ -188,20 +188,20 @@ export default async function MembrosPage() {
                   </td>
                   <td style={{ padding: '1rem', textAlign: 'right' }}>
                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                      {/* Botão DIRETOR - toggle on/off */}
+                      {/* Botão CONSELHEIRO - toggle on/off */}
                       {membro.role !== 'ADMIN' && (
-                        <form action={async () => { 'use server'; await toggleDiretor(membro.id, membro.role); }}>
+                        <form action={async () => { 'use server'; await toggleConselheiro(membro.id, membro.role); }}>
                           <button type="submit" style={{ 
                             fontSize: '0.7rem', 
                             padding: '0.4rem 0.8rem', 
                             borderRadius: '6px',
-                            border: membro.role === 'DIRETOR' ? '1px solid #d4af37' : '1px solid #ddd',
-                            backgroundColor: membro.role === 'DIRETOR' ? '#fef3c7' : 'transparent',
-                            color: membro.role === 'DIRETOR' ? '#92400e' : '#888',
+                            border: membro.role === 'CONSELHEIRO' ? '1px solid #d4af37' : '1px solid #ddd',
+                            backgroundColor: membro.role === 'CONSELHEIRO' ? '#fef3c7' : 'transparent',
+                            color: membro.role === 'CONSELHEIRO' ? '#92400e' : '#888',
                             cursor: 'pointer',
                             fontWeight: 700,
                           }}>
-                            {membro.role === 'DIRETOR' ? '👁️ REMOVER DIRETOR' : '👁️ TORNAR DIRETOR'}
+                            {membro.role === 'CONSELHEIRO' ? '👁️ REMOVER CONSELHEIRO' : '👁️ TORNAR CONSELHEIRO'}
                           </button>
                         </form>
                       )}

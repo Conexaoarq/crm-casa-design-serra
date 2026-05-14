@@ -22,8 +22,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Proteger rota /admin apenas para ADMINs e DIRETOREs
-  if (pathname.startsWith('/admin') && token.role !== 'ADMIN' && token.role !== 'DIRETOR') {
+  // Proteger rota /admin apenas para ADMINs e CONSELHEIROs
+  if (pathname.startsWith('/admin') && token.role !== 'ADMIN' && token.role !== 'CONSELHEIRO') {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

@@ -111,7 +111,7 @@ export default async function AdminDashboard() {
   const session = await getServerSession(authOptions);
   const userRole = (session?.user as any)?.role;
 
-  if (!session || (userRole !== 'ADMIN' && userRole !== 'DIRETOR')) {
+  if (!session || (userRole !== 'ADMIN' && userRole !== 'CONSELHEIRO')) {
     redirect("/login");
   }
 
@@ -123,7 +123,7 @@ export default async function AdminDashboard() {
     <div className="container animate-fade-in" style={{ paddingBottom: '5rem' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
 
-        {/* Banner de visualização para diretores */}
+        {/* Banner de visualização para conselheiros */}
         {!isAdmin && (
           <div style={{ 
             padding: '1rem 1.5rem', 
@@ -140,7 +140,7 @@ export default async function AdminDashboard() {
             color: '#92400e'
           }}>
             <span>👁️</span>
-            Modo Visualização — Você está acessando como Diretor. Apenas leitura.
+            Modo Visualização — Você está acessando como Conselheiro. Apenas leitura.
           </div>
         )}
         

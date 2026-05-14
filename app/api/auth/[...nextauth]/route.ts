@@ -140,7 +140,7 @@ export const authOptions = {
         }
       }
       
-      // Atualizar role do banco a cada refresh para refletir mudanças de DIRETOR em tempo real
+      // Atualizar role do banco a cada refresh para refletir mudanças de CONSELHEIRO em tempo real
       if (token.email) {
         try {
           const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
