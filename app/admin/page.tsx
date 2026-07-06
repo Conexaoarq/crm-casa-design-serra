@@ -87,6 +87,8 @@ async function getAdminData() {
         toUserName: ind.toUser?.companyName || ind.toUser?.name || null,
         clientName: ind.clientName,
         clientPhone: ind.clientPhone,
+        projectDetails: ind.projectDetails || '',
+        architectName: ind.architectName || '',
         contactMade: ind.contactMade,
         budgetGenerated: ind.budgetGenerated,
         status: ind.status,
@@ -215,7 +217,7 @@ export default async function AdminDashboard() {
               </thead>
               <tbody>
                 {data.indicacoes.map((ind) => (
-                  <AdminTableRow key={ind.id} ind={ind} />
+                  <AdminTableRow key={ind.id} ind={ind} isAdmin={isAdmin} />
                 ))}
               </tbody>
             </table>

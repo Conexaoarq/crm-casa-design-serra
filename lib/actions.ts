@@ -186,6 +186,67 @@ export async function atualizarStatusIndicacao(referralId: string, data: { conta
   }
 }
 
+// ===========================================
+// SERVER ACTION: Editar Indicação Completa (Admin)
+// ===========================================
+export async function editarIndicacaoCompleta(referralId: string, data: {
+  clientName: string;
+  clientPhone: string;
+  projectDetails: string;
+  architectName: string;
+  status: string;
+  closedValue?: number | null;
+}) {
+  const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== 'ADMIN') {
+    return { success: false, error: "Apenas administradores podem editar." };
+  }
+
+  try {
+    const { closedValue, ...referralData } = data;
+
+    const updated = await prisma.referral.update({
+      where: { id: referralId },
+      data: {
+        clientName: referralData.clientName,
+        clientPhone: referralData.clientPhone || null,
+        projectDetails: referralData.projectDetails || null,
+        architectName: referralData.architectName || null,
+        status: referralData.status,
+        updatedAt: new Date()
+      }
+    });
+
+    if (data.status === 'CLOSED_WON' && closedValue !== undefined && closedValue !== null && closedValue > 0) {
+      const existing = await prisma.closedBusiness.findUnique({ where: { referralId } });
+      if (existing) {
+        await prisma.closedBusiness.update({
+          where: { referralId },
+          data: { value: closedValue }
+        });
+      } else {
+        await prisma.closedBusiness.create({
+          data: { referralId, value: closedValue }
+        });
+        await prisma.referral.update({
+          where: { id: referralId },
+          data: { budgetGenerated: true, contactMade: true }
+        });
+      }
+    } else if (data.status !== 'CLOSED_WON') {
+      const existing = await prisma.closedBusiness.findUnique({ where: { referralId } });
+      if (existing) {
+        await prisma.closedBusiness.delete({ where: { referralId } });
+      }
+    }
+
+    return { success: true, referral: updated };
+  } catch (e) {
+    console.error("Erro na edicao:", e);
+    return { success: false, error: "Erro ao editar indicação" };
+  }
+}
+
 // ================================
 // SERVER ACTION: Fechar Negócio Direto (da tabela de acompanhamento)
 // ================================

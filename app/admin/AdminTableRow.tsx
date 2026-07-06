@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { atualizarStatusIndicacao, fecharNegocioDireto } from '@/lib/actions';
+import { atualizarStatusIndicacao, fecharNegocioDireto, editarIndicacaoCompleta } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
 interface IndicacaoRow {
@@ -11,18 +11,42 @@ interface IndicacaoRow {
   toUserName: string | null;
   clientName: string;
   clientPhone: string | null;
+  projectDetails: string;
+  architectName: string;
   contactMade: boolean;
   budgetGenerated: boolean;
   status: string;
   closedValue: number | null;
 }
 
-export default function AdminTableRow({ ind }: { ind: IndicacaoRow }) {
+export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isAdmin?: boolean }) {
   const router = useRouter();
   const [showValueInput, setShowValueInput] = useState(false);
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingContact, setLoadingContact] = useState(false);
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({
+    clientName: ind.clientName || '',
+    clientPhone: ind.clientPhone || '',
+    projectDetails: ind.projectDetails || '',
+    architectName: ind.architectName || '',
+    status: ind.status || 'PENDING',
+    closedValue: ind.closedValue || '',
+  });
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    await editarIndicacaoCompleta(ind.id, {
+      ...editForm,
+      closedValue: editForm.closedValue ? parseFloat(editForm.closedValue as string) : null
+    });
+    setIsEditing(false);
+    router.refresh();
+    setLoading(false);
+  };
 
   const handleMarcarContato = async () => {
     setLoadingContact(true);
@@ -181,6 +205,14 @@ export default function AdminTableRow({ ind }: { ind: IndicacaoRow }) {
         }
       </td>
       <td style={{ padding: '1.25rem 1rem', borderRadius: '0 12px 12px 0' }}>
+        {isAdmin && (
+          <button
+            onClick={() => setIsEditing(true)}
+            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#92400e', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', marginRight: '0.5rem', padding: 0 }}
+          >
+            EDITAR
+          </button>
+        )}
         {!ind.contactMade && (
           <button 
             onClick={handleMarcarContato} 
@@ -201,6 +233,57 @@ export default function AdminTableRow({ ind }: { ind: IndicacaoRow }) {
         {isClosed && (
           <span style={{ color: '#15803d', fontSize: '0.75rem', fontWeight: 700 }}>✓ Concluído</span>
         )}
+
+      {isEditing && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ marginBottom: '1.5rem', fontWeight: 800 }}>Editar Indicação</h3>
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Nome do Cliente</label>
+                <input required value={editForm.clientName} onChange={e => setEditForm({...editForm, clientName: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Telefone do Cliente</label>
+                <input value={editForm.clientPhone} onChange={e => setEditForm({...editForm, clientPhone: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Arquiteto</label>
+                <input value={editForm.architectName} onChange={e => setEditForm({...editForm, architectName: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Detalhes do Projeto</label>
+                <textarea rows={3} value={editForm.projectDetails} onChange={e => setEditForm({...editForm, projectDetails: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Status</label>
+                <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }}>
+                  <option value="PENDING">Pendente</option>
+                  <option value="CONTACTED">Contatado</option>
+                  <option value="QUOTED">Orçado</option>
+                  <option value="CLOSED_WON">Fechado / Ganho</option>
+                  <option value="CLOSED_LOST">Perdido</option>
+                </select>
+              </div>
+              {editForm.status === 'CLOSED_WON' && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Valor Fechado (R$)</label>
+                  <input type="number" step="0.01" value={editForm.closedValue} onChange={e => setEditForm({...editForm, closedValue: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                  {loading ? 'Salvando...' : 'SALVAR'}
+                </button>
+                <button type="button" onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#f5f5f5', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
+                  CANCELAR
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       </td>
     </tr>
   );
