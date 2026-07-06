@@ -39,20 +39,36 @@ export default function AdminDashboardClient({ data, isAdmin }: { data: any, isA
           paddingTop: '4rem', 
           paddingBottom: '3rem',
           borderBottom: '1px solid var(--border)',
-          marginBottom: '4rem'
+          marginBottom: '4rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '2rem'
         }}>
-          <h1 style={{ 
-            fontSize: 'clamp(2rem, 4vw, 3.5rem)', 
-            fontWeight: 300, 
-            letterSpacing: '-0.03em', 
-            lineHeight: 1.1,
-            color: '#111'
-          }}>
-            Gestão <strong style={{ fontWeight: 800 }}>Estratégica.</strong>
-          </h1>
-          <p style={{ marginTop: '1.5rem', color: '#666', fontSize: '1rem', maxWidth: '600px', letterSpacing: '0.02em', lineHeight: 1.6 }}>
-            Visão global de negócios, indicações e performance do grupo Casa Design Serra.
-          </p>
+          <div>
+            <h1 style={{ 
+              fontSize: 'clamp(2rem, 4vw, 3.5rem)', 
+              fontWeight: 300, 
+              letterSpacing: '-0.03em', 
+              lineHeight: 1.1,
+              color: '#111'
+            }}>
+              Gestão <strong style={{ fontWeight: 800 }}>Estratégica.</strong>
+            </h1>
+            <p style={{ marginTop: '1.5rem', color: '#666', fontSize: '1rem', maxWidth: '600px', letterSpacing: '0.02em', lineHeight: 1.6 }}>
+              Visão global de negócios, indicações e performance do grupo Casa Design Serra.
+            </p>
+          </div>
+          
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <Link href="/" className="btn-outline">Visão Usuário</Link>
+            {isAdmin && (
+              <Link href="/admin/membros" className="btn-primary">
+                Gestão de Membros
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Banner de visualização para conselheiros */}
