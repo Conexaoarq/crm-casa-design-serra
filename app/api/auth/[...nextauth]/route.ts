@@ -16,7 +16,7 @@ export const authOptions = {
         port: 25,
         auth: { user: "", pass: "" }
       },
-      from: "onboarding@resend.dev",
+      from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
       async sendVerificationRequest({ identifier, url, provider }) {
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
