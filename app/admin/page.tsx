@@ -129,8 +129,8 @@ export default async function AdminDashboard() {
         {!isAdmin && (
           <div style={{ 
             padding: '1rem 1.5rem', 
-            backgroundColor: '#fef3c7', 
-            border: '1px solid #fde68a', 
+            backgroundColor: '#f8f8f8', 
+            border: '1px solid #e5e5e5', 
             borderRadius: '12px', 
             marginTop: '1.5rem', 
             marginBottom: '1rem',
@@ -139,9 +139,9 @@ export default async function AdminDashboard() {
             gap: '0.75rem',
             fontSize: '0.875rem',
             fontWeight: 600,
-            color: '#92400e'
+            color: '#333'
           }}>
-            <span>👁️</span>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#888', borderRadius: '50%' }}></div>
             Modo Visualização — Você está acessando como Conselheiro. Apenas leitura.
           </div>
         )}
@@ -182,14 +182,13 @@ export default async function AdminDashboard() {
             { label: 'Negócios Fechados', val: data.stats.qtdVendas, desc: 'Conversões reais' },
           ].map((s, i) => (
             <div key={i} style={{ 
-              background: 'linear-gradient(135deg, #ffffff 0%, #f9f9f9 100%)', 
+              backgroundColor: '#fff', 
               padding: '2rem', 
               borderRadius: '24px', 
-              border: '1px solid #f0f0f0',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.02)'
+              border: '1px solid #e5e5e5',
             }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>{s.label}</div>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#000', marginBottom: '0.25rem' }}>{s.val}</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.75rem' }}>{s.label}</div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: '#000', marginBottom: '0.25rem' }}>{s.val}</div>
               <div style={{ fontSize: '0.875rem', color: '#888' }}>{s.desc}</div>
             </div>
           ))}
@@ -226,32 +225,32 @@ export default async function AdminDashboard() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2rem' }}>
           {/* Top Indicadores por Quantidade */}
-          <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #f0f0f0' }}>
-            <h3 style={{ fontWeight: 800, marginBottom: '2rem', fontSize: '1.25rem' }}>🏆 Ranking de Indicações</h3>
+          <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #e5e5e5' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '2rem', fontSize: '1.1rem', color: '#333' }}>Ranking de Indicações</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {data.maisIndicados.length > 0 ? data.maisIndicados.map((item) => (
                 <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #f9f9f9' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <span style={{ fontWeight: 900, color: item.pos === 1 ? '#000' : '#ddd', fontSize: '1.25rem' }}>{item.pos}</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.nome}</span>
+                    <span style={{ fontWeight: 800, color: item.pos === 1 ? '#000' : '#ccc', fontSize: '1.1rem' }}>{item.pos}</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
                   </div>
-                  <span style={{ fontWeight: 900, backgroundColor: '#000', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>{item.pts}</span>
+                  <span style={{ fontWeight: 700, backgroundColor: '#f5f5f5', color: '#333', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>{item.pts}</span>
                 </div>
               )) : <p style={{ fontSize: '0.85rem', color: '#888' }}>Nenhuma indicação ainda.</p>}
             </div>
           </div>
 
           {/* Top Geradores de Valor */}
-          <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #f0f0f0' }}>
-            <h3 style={{ fontWeight: 800, marginBottom: '2rem', fontSize: '1.25rem' }}>💰 Ranking por Valor Gerado</h3>
+          <div style={{ background: '#fff', borderRadius: '24px', padding: '2rem', border: '1px solid #e5e5e5' }}>
+            <h3 style={{ fontWeight: 700, marginBottom: '2rem', fontSize: '1.1rem', color: '#333' }}>Ranking por Valor Gerado</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {data.maioresValores.length > 0 ? data.maioresValores.map((item) => (
                 <div key={item.pos} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #f9f9f9' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                    <span style={{ fontWeight: 900, color: item.pos === 1 ? '#d4af37' : '#ddd', fontSize: '1.25rem' }}>{item.pos}</span>
-                    <span style={{ fontWeight: 700, fontSize: '0.9rem' }}>{item.nome}</span>
+                    <span style={{ fontWeight: 800, color: item.pos === 1 ? '#000' : '#ccc', fontSize: '1.1rem' }}>{item.pos}</span>
+                    <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{item.nome}</span>
                   </div>
-                  <span style={{ fontWeight: 900, backgroundColor: '#1a1a1a', color: '#d4af37', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>
+                  <span style={{ fontWeight: 700, backgroundColor: '#000', color: '#fff', padding: '0.25rem 0.75rem', borderRadius: '6px', fontSize: '0.75rem' }}>
                     {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
                   </span>
                 </div>

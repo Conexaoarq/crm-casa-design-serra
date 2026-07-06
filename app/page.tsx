@@ -57,8 +57,8 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '4rem' }}>
           
           <Link href="/indicacao/nova" style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #eee' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>🤝</div>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #e5e5e5' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#aaa', textTransform: 'uppercase', marginBottom: '1.5rem', letterSpacing: '0.1em' }}>01. INDICAR</div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#000' }}>Indicar um Multiplicador</h3>
               <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.5, flex: 1 }}>
                 Conecte um cliente com alguma empresa do nosso grupo.
@@ -68,8 +68,8 @@ export default function Dashboard() {
           </Link>
 
           <Link href="/indicacao/pedir" style={{ textDecoration: 'none' }}>
-            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #eee' }}>
-              <div style={{ fontSize: '2.5rem', marginBottom: '1.5rem' }}>🔍</div>
+            <div className="glass-panel" style={{ padding: '2rem', borderRadius: '16px', backgroundColor: '#fff', height: '100%', display: 'flex', flexDirection: 'column', border: '1px solid #e5e5e5' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#aaa', textTransform: 'uppercase', marginBottom: '1.5rem', letterSpacing: '0.1em' }}>02. PEDIR LEAD</div>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem', color: '#000' }}>Quero um Lead Quente!</h3>
               <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.5, flex: 1 }}>
                 Está procurando alguém específico? Peça ajuda para o grupo.
@@ -82,16 +82,17 @@ export default function Dashboard() {
 
         {/* ========== BANNER DESTAQUE: Ranking por Valor Gerado ========== */}
         <div style={{ 
-          background: 'linear-gradient(135deg, #1a1a1a 0%, #000 100%)', 
+          background: '#0a0a0a', 
           borderRadius: '24px', 
           padding: '2.5rem', 
           marginBottom: '2rem',
           color: '#fff',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.15)'
+          border: '1px solid #222',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem' }}>
-            <span style={{ fontSize: '1.5rem' }}>💰</span>
-            <h3 style={{ fontWeight: 800, fontSize: '1.3rem', letterSpacing: '-0.02em' }}>Ranking por Valor Gerado</h3>
+            <div style={{ width: '8px', height: '8px', backgroundColor: '#fff', borderRadius: '50%' }}></div>
+            <h3 style={{ fontWeight: 600, fontSize: '1rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: '#ccc' }}>Ranking por Valor Gerado</h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {data?.maioresValores?.length > 0 ? data.maioresValores.map((item: any, i: number) => (
@@ -106,28 +107,28 @@ export default function Dashboard() {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <span style={{ 
-                    fontWeight: 900, 
-                    color: i === 0 ? '#d4af37' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.3)', 
-                    fontSize: '1.25rem',
+                    fontWeight: 600, 
+                    color: i === 0 ? '#fff' : '#666', 
+                    fontSize: '1rem',
                     width: '2rem',
                     textAlign: 'center'
                   }}>{i + 1}</span>
                   <span style={{ fontWeight: 700, fontSize: '0.95rem' }}>{item.nome}</span>
                 </div>
                 <span style={{ 
-                  fontWeight: 900, 
+                  fontWeight: 600, 
                   fontSize: '0.9rem', 
-                  color: '#d4af37',
-                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  color: i === 0 ? '#000' : '#fff',
+                  backgroundColor: i === 0 ? '#fff' : '#222',
                   padding: '0.3rem 0.75rem',
-                  borderRadius: '8px'
+                  borderRadius: '4px'
                 }}>
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
                 </span>
               </div>
             )) : (
-              <p style={{ fontSize: '0.9rem', opacity: 0.5, textAlign: 'center', padding: '1.5rem 0' }}>
-                Nenhum negócio fechado ainda. Seja o primeiro! 🚀
+              <p style={{ fontSize: '0.85rem', color: '#666', textAlign: 'center', padding: '1.5rem 0' }}>
+                Nenhum negócio fechado ainda.
               </p>
             )}
           </div>
@@ -137,9 +138,10 @@ export default function Dashboard() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '4rem' }}>
           
           {/* Ranking: Quem mais indicou */}
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🚀 Quem Mais Indicou
+          <div className="glass-panel" style={{ padding: '2rem', border: '1px solid #e5e5e5' }}>
+            <h3 style={{ fontWeight: 600, fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#000', borderRadius: '50%' }}></div>
+              Mais Indicações Enviadas
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {data?.maioresIndicadores?.length > 0 ? data.maioresIndicadores.map((item: any, i: number) => (
@@ -155,9 +157,10 @@ export default function Dashboard() {
           </div>
 
           {/* Ranking: Mais indicados (receberam mais) */}
-          <div className="glass-panel" style={{ padding: '2rem' }}>
-            <h3 style={{ fontWeight: 700, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🏆 Mais Indicados
+          <div className="glass-panel" style={{ padding: '2rem', border: '1px solid #e5e5e5' }}>
+            <h3 style={{ fontWeight: 600, fontSize: '0.85rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '6px', height: '6px', backgroundColor: '#000', borderRadius: '50%' }}></div>
+              Mais Indicações Recebidas
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {data?.maisIndicados?.length > 0 ? data.maisIndicados.map((item: any, i: number) => (

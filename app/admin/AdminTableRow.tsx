@@ -100,17 +100,21 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
             disabled={ind.contactMade || loadingContact}
             style={{ 
               padding: '0.3rem 0.75rem', 
-              borderRadius: '100px', 
+              borderRadius: '6px', 
               fontSize: '0.7rem', 
-              fontWeight: 800,
-              backgroundColor: ind.contactMade ? '#e6fffa' : '#f5f5f5',
-              color: ind.contactMade ? '#0694a2' : '#aaa',
-              border: ind.contactMade ? '1px solid #b2f5ea' : '1px solid #e0e0e0',
+              fontWeight: 700,
+              backgroundColor: ind.contactMade ? '#f5f5f5' : '#fff',
+              color: ind.contactMade ? '#888' : '#333',
+              border: '1px solid #e5e5e5',
               cursor: ind.contactMade ? 'default' : 'pointer',
               transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
             }}
           >
-            {loadingContact ? '...' : ind.contactMade ? '✓ CONTATO' : 'CONTATO'}
+            {ind.contactMade && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>}
+            {loadingContact ? '...' : ind.contactMade ? 'Contato Realizado' : 'Marcar Contato'}
           </button>
 
           {/* Botão FECHADO - clicável para abrir campo de valor */}
@@ -119,17 +123,21 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
             disabled={isClosed}
             style={{ 
               padding: '0.3rem 0.75rem', 
-              borderRadius: '100px', 
+              borderRadius: '6px', 
               fontSize: '0.7rem', 
-              fontWeight: 800,
-              backgroundColor: isClosed ? '#f0fdf4' : showValueInput ? '#fffbeb' : '#f5f5f5',
-              color: isClosed ? '#15803d' : showValueInput ? '#92400e' : '#aaa',
-              border: isClosed ? '1px solid #bbf7d0' : showValueInput ? '1px solid #fde68a' : '1px solid #e0e0e0',
+              fontWeight: 700,
+              backgroundColor: isClosed ? '#f5f5f5' : showValueInput ? '#f9f9f9' : '#fff',
+              color: isClosed ? '#888' : '#333',
+              border: '1px solid #e5e5e5',
               cursor: isClosed ? 'default' : 'pointer',
               transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem'
             }}
           >
-            {isClosed ? '✓ FECHADO' : 'FECHADO'}
+            {isClosed && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>}
+            {isClosed ? 'Negócio Fechado' : 'Registrar Fechamento'}
           </button>
         </div>
 
@@ -205,12 +213,12 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
           </div>
         )}
       </td>
-      <td style={{ padding: '1.25rem 1rem', fontWeight: 800, fontSize: '0.875rem' }}>
+      <td style={{ padding: '1.25rem 1rem', fontWeight: 700, fontSize: '0.875rem' }}>
         {ind.closedValue ? 
-          <span style={{ color: '#15803d' }}>
+          <span style={{ color: '#000' }}>
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ind.closedValue)}
           </span> : 
-          '-'
+          <span style={{ color: '#ccc' }}>-</span>
         }
       </td>
       <td style={{ padding: '1.25rem 1rem', borderRadius: '0 12px 12px 0' }}>
@@ -218,14 +226,14 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
           <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <button
               onClick={() => setIsEditing(true)}
-              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#92400e', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
             >
               EDITAR
             </button>
             <button
               onClick={handleDelete}
               disabled={loading}
-              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
             >
               EXCLUIR
             </button>
@@ -235,7 +243,7 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
           <button 
             onClick={handleMarcarContato} 
             disabled={loadingContact}
-            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline' }}
+            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline' }}
           >
             {loadingContact ? 'Salvando...' : 'MARCAR CONTATO'}
           </button>
@@ -243,13 +251,16 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
         {ind.contactMade && !isClosed && (
           <button
             onClick={() => setShowValueInput(true)}
-            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#15803d', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline' }}
+            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline' }}
           >
             REGISTRAR VALOR
           </button>
         )}
         {isClosed && (
-          <span style={{ color: '#15803d', fontSize: '0.75rem', fontWeight: 700 }}>✓ Concluído</span>
+          <span style={{ color: '#000', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>
+            Concluído
+          </span>
         )}
 
       {isEditing && (

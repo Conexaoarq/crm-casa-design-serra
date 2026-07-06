@@ -124,19 +124,19 @@ export default async function MembrosPage() {
 
         {/* Resumo do Grupo */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #000' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #111' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Membros Cadastrados</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.length} <span style={{ fontSize: '1rem', color: '#ccc', fontWeight: 400 }}>/ 50</span></div>
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #00c000' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #555' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Convites Enviados</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{membros.filter(m => m.role !== 'ADMIN').length}</div>
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #d4af37' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #888' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Conselheiros</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{conselheiros.length}</div>
           </div>
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #aaa' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid #ccc' }}>
             <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#888', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Vagas Disponíveis</div>
             <div style={{ fontSize: '2rem', fontWeight: 800 }}>{Math.max(0, 50 - membros.length)}</div>
           </div>
@@ -175,12 +175,13 @@ export default async function MembrosPage() {
                   <td style={{ padding: '1rem', fontWeight: 600 }}>{membro.companyName || '---'}</td>
                   <td style={{ padding: '1rem', color: 'var(--muted-foreground)' }}>{membro.email}</td>
                   <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{ 
+                      <span style={{ 
                       fontSize: '0.7rem', 
                       padding: '2px 8px', 
-                      borderRadius: '10px', 
-                      backgroundColor: membro.role === 'ADMIN' ? '#000' : membro.role === 'CONSELHEIRO' ? '#d4af37' : '#eee', 
-                      color: membro.role === 'ADMIN' ? '#fff' : membro.role === 'CONSELHEIRO' ? '#fff' : '#000',
+                      borderRadius: '4px', 
+                      backgroundColor: membro.role === 'ADMIN' ? '#000' : membro.role === 'CONSELHEIRO' ? '#f5f5f5' : '#fff', 
+                      border: membro.role === 'ADMIN' ? '1px solid #000' : '1px solid #e5e5e5',
+                      color: membro.role === 'ADMIN' ? '#fff' : '#333',
                       fontWeight: 700
                     }}>
                       {membro.role}
@@ -196,12 +197,12 @@ export default async function MembrosPage() {
                             padding: '0.4rem 0.8rem', 
                             borderRadius: '6px',
                             border: membro.role === 'CONSELHEIRO' ? '1px solid #d4af37' : '1px solid #ddd',
-                            backgroundColor: membro.role === 'CONSELHEIRO' ? '#fef3c7' : 'transparent',
-                            color: membro.role === 'CONSELHEIRO' ? '#92400e' : '#888',
+                            backgroundColor: membro.role === 'CONSELHEIRO' ? '#f5f5f5' : 'transparent',
+                            color: membro.role === 'CONSELHEIRO' ? '#000' : '#888',
                             cursor: 'pointer',
                             fontWeight: 700,
                           }}>
-                            {membro.role === 'CONSELHEIRO' ? '👁️ REMOVER CONSELHEIRO' : '👁️ TORNAR CONSELHEIRO'}
+                            {membro.role === 'CONSELHEIRO' ? 'REMOVER CONSELHEIRO' : 'TORNAR CONSELHEIRO'}
                           </button>
                         </form>
                       )}
