@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useRef } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -10,13 +10,15 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const searchParams = useSearchParams();
+  const loginAttempted = useRef(false);
 
   // Efeito para auto-login se vier com inviteToken
   useEffect(() => {
     const inviteToken = searchParams.get('inviteToken');
     const inviteEmail = searchParams.get('email');
 
-    if (inviteToken && inviteEmail) {
+    if (inviteToken && inviteEmail && !loginAttempted.current) {
+      loginAttempted.current = true;
       setLoading(true);
       signIn('credentials', { 
         email: inviteEmail, 

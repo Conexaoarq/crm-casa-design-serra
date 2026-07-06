@@ -68,11 +68,8 @@ export const authOptions = {
           });
           
           if (user && user.password === credentials.inviteToken) {
-            // Limpar o token após o uso para segurança
-            await prisma.user.update({
-              where: { id: user.id },
-              data: { password: null }
-            });
+            // O token não é limpo aqui. Assim o membro pode usar o link do e-mail como um "superlink" permanente.
+            // Se o admin reenviar o acesso, um novo token será gerado, invalidando o antigo.
             return user;
           }
         }
