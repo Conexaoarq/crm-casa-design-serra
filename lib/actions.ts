@@ -247,6 +247,41 @@ export async function editarIndicacaoCompleta(referralId: string, data: {
   }
 }
 
+// ===========================================
+// SERVER ACTION: Excluir Indicação (Admin)
+// ===========================================
+export async function excluirIndicacao(referralId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== 'ADMIN') {
+    return { success: false, error: "Apenas administradores podem excluir." };
+  }
+
+  try {
+    // Excluir negócios fechados vinculados, se existirem
+    const existingBusiness = await prisma.closedBusiness.findUnique({ where: { referralId } });
+    if (existingBusiness) {
+      await prisma.closedBusiness.delete({ where: { referralId } });
+    }
+
+    // Excluir a indicação principal
+    await prisma.referral.delete({ where: { id: referralId } });
+
+    // (Opcional) Log de auditoria da exclusão
+    await prisma.auditLog.create({
+      data: {
+        userId: (session.user as any).id,
+        action: 'DELETE_REFERRAL',
+        details: JSON.stringify({ referralId })
+      }
+    });
+
+    return { success: true };
+  } catch (e) {
+    console.error("Erro ao excluir indicação:", e);
+    return { success: false, error: "Erro ao excluir indicação" };
+  }
+}
+
 // ================================
 // SERVER ACTION: Fechar Negócio Direto (da tabela de acompanhamento)
 // ================================

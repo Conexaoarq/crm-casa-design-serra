@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { atualizarStatusIndicacao, fecharNegocioDireto, editarIndicacaoCompleta } from '@/lib/actions';
+import { atualizarStatusIndicacao, fecharNegocioDireto, editarIndicacaoCompleta, excluirIndicacao } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 
 interface IndicacaoRow {
@@ -46,6 +46,15 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
     setIsEditing(false);
     router.refresh();
     setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (window.confirm("Tem certeza que deseja EXCLUIR essa indicação permanentemente?")) {
+      setLoading(true);
+      await excluirIndicacao(ind.id);
+      router.refresh();
+      setLoading(false);
+    }
   };
 
   const handleMarcarContato = async () => {
@@ -206,12 +215,21 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
       </td>
       <td style={{ padding: '1.25rem 1rem', borderRadius: '0 12px 12px 0' }}>
         {isAdmin && (
-          <button
-            onClick={() => setIsEditing(true)}
-            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#92400e', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', marginRight: '0.5rem', padding: 0 }}
-          >
-            EDITAR
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <button
+              onClick={() => setIsEditing(true)}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#92400e', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
+            >
+              EDITAR
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={loading}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, textDecoration: 'underline', padding: 0 }}
+            >
+              EXCLUIR
+            </button>
+          </div>
         )}
         {!ind.contactMade && (
           <button 
