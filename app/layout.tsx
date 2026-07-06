@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 
 import { Providers } from "@/components/Providers";
 
-const inter = Inter({ subsets: ["latin"] });
+const montserrat = Montserrat({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CRM | Casa Design Serra",
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={inter.className}>
+      <body className={montserrat.className}>
         <Providers>
           <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
           {/* Topbar genérica minimalista */}

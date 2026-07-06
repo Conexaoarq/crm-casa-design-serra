@@ -78,34 +78,36 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
   const isClosed = ind.status === 'CLOSED_WON' || ind.closedValue !== null;
 
   return (
-    <tr style={{ backgroundColor: '#fcfcfc', transition: 'all 0.2s' }}>
-      <td style={{ padding: '1.25rem 1rem', borderRadius: '12px 0 0 12px', fontSize: '0.875rem' }}>
+    <tr style={{ backgroundColor: '#fff', borderBottom: '1px solid var(--border)', transition: 'all 0.2s' }}>
+      <td style={{ padding: '1.25rem 1rem', fontSize: '0.85rem' }}>
         {new Date(ind.createdAt).toLocaleDateString('pt-BR')}
       </td>
-      <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.875rem' }}>
+      <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.85rem' }}>
         {ind.fromUserName}
       </td>
-      <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.875rem', color: ind.toUserName ? '#000' : '#888' }}>
+      <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.85rem', color: ind.toUserName ? '#111' : '#888' }}>
         {ind.toUserName || 'Grupo Aberto'}
       </td>
-      <td style={{ padding: '1.25rem 1rem', fontSize: '0.875rem' }}>
-        <div style={{ fontWeight: 700 }}>{ind.clientName}</div>
+      <td style={{ padding: '1.25rem 1rem', fontSize: '0.85rem' }}>
+        <div style={{ fontWeight: 600 }}>{ind.clientName}</div>
         <div style={{ fontSize: '0.75rem', color: '#888' }}>{ind.clientPhone || 'Sem tel.'}</div>
       </td>
       <td style={{ padding: '1.25rem 1rem' }}>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          {/* Botão CONTATO - clicável para marcar */}
+          {/* Botão CONTATO */}
           <button
             onClick={!ind.contactMade ? handleMarcarContato : undefined}
             disabled={ind.contactMade || loadingContact}
             style={{ 
-              padding: '0.3rem 0.75rem', 
-              borderRadius: '6px', 
+              padding: '0.4rem 0.8rem', 
+              borderRadius: '0px', 
               fontSize: '0.7rem', 
-              fontWeight: 700,
-              backgroundColor: ind.contactMade ? '#f5f5f5' : '#fff',
-              color: ind.contactMade ? '#888' : '#333',
-              border: '1px solid #e5e5e5',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              backgroundColor: ind.contactMade ? '#fafafa' : '#fff',
+              color: ind.contactMade ? '#888' : '#111',
+              border: '1px solid var(--border)',
               cursor: ind.contactMade ? 'default' : 'pointer',
               transition: 'all 0.2s',
               display: 'flex',
@@ -113,22 +115,24 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
               gap: '0.4rem'
             }}
           >
-            {ind.contactMade && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>}
-            {loadingContact ? '...' : ind.contactMade ? 'Contato Realizado' : 'Marcar Contato'}
+            {ind.contactMade && <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#111' }}></div>}
+            {loadingContact ? '...' : ind.contactMade ? 'Contatado' : 'Contatar'}
           </button>
 
-          {/* Botão FECHADO - clicável para abrir campo de valor */}
+          {/* Botão FECHADO */}
           <button
             onClick={() => !isClosed && setShowValueInput(!showValueInput)}
             disabled={isClosed}
             style={{ 
-              padding: '0.3rem 0.75rem', 
-              borderRadius: '6px', 
+              padding: '0.4rem 0.8rem', 
+              borderRadius: '0px', 
               fontSize: '0.7rem', 
-              fontWeight: 700,
-              backgroundColor: isClosed ? '#f5f5f5' : showValueInput ? '#f9f9f9' : '#fff',
-              color: isClosed ? '#888' : '#333',
-              border: '1px solid #e5e5e5',
+              fontWeight: 600,
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase',
+              backgroundColor: isClosed ? '#fafafa' : showValueInput ? '#f4f4f5' : '#fff',
+              color: isClosed ? '#888' : '#111',
+              border: '1px solid var(--border)',
               cursor: isClosed ? 'default' : 'pointer',
               transition: 'all 0.2s',
               display: 'flex',
@@ -136,8 +140,8 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
               gap: '0.4rem'
             }}
           >
-            {isClosed && <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>}
-            {isClosed ? 'Negócio Fechado' : 'Registrar Fechamento'}
+            {isClosed && <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#111' }}></div>}
+            {isClosed ? 'Fechado' : 'Registrar'}
           </button>
         </div>
 
@@ -170,8 +174,8 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
                 style={{
                   width: '100%',
                   padding: '0.4rem 0.5rem 0.4rem 2rem',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: '8px',
+                  border: '1px solid var(--border)',
+                  borderRadius: '0px',
                   fontSize: '0.8rem',
                   fontWeight: 600,
                   outline: 'none',
@@ -183,12 +187,12 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
               disabled={loading || !value}
               style={{
                 padding: '0.4rem 0.75rem',
-                backgroundColor: '#000',
+                backgroundColor: '#111',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '0px',
                 fontSize: '0.7rem',
-                fontWeight: 800,
+                fontWeight: 600,
                 cursor: loading || !value ? 'not-allowed' : 'pointer',
                 opacity: loading || !value ? 0.5 : 1,
                 whiteSpace: 'nowrap',
@@ -202,8 +206,8 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
                 padding: '0.4rem 0.5rem',
                 backgroundColor: 'transparent',
                 color: '#888',
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                borderRadius: '0px',
                 fontSize: '0.7rem',
                 cursor: 'pointer',
               }}
@@ -213,80 +217,57 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
           </div>
         )}
       </td>
-      <td style={{ padding: '1.25rem 1rem', fontWeight: 700, fontSize: '0.875rem' }}>
+      <td style={{ padding: '1.25rem 1rem', fontWeight: 600, fontSize: '0.85rem' }}>
         {ind.closedValue ? 
-          <span style={{ color: '#000' }}>
+          <span style={{ color: '#111' }}>
             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(ind.closedValue)}
           </span> : 
           <span style={{ color: '#ccc' }}>-</span>
         }
       </td>
-      <td style={{ padding: '1.25rem 1rem', borderRadius: '0 12px 12px 0' }}>
+      <td style={{ padding: '1.25rem 1rem', textAlign: 'right' }}>
         {isAdmin && (
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
             <button
               onClick={() => setIsEditing(true)}
-              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' }}
             >
               EDITAR
             </button>
             <button
               onClick={handleDelete}
               disabled={loading}
-              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline', padding: 0 }}
+              style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#666', fontSize: '0.7rem', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase' }}
             >
               EXCLUIR
             </button>
           </div>
         )}
-        {!ind.contactMade && (
-          <button 
-            onClick={handleMarcarContato} 
-            disabled={loadingContact}
-            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline' }}
-          >
-            {loadingContact ? 'Salvando...' : 'MARCAR CONTATO'}
-          </button>
-        )}
-        {ind.contactMade && !isClosed && (
-          <button
-            onClick={() => setShowValueInput(true)}
-            style={{ cursor: 'pointer', border: 'none', background: 'none', color: '#000', fontSize: '0.75rem', fontWeight: 600, textDecoration: 'underline' }}
-          >
-            REGISTRAR VALOR
-          </button>
-        )}
-        {isClosed && (
-          <span style={{ color: '#000', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981' }}></div>
-            Concluído
-          </span>
-        )}
 
       {isEditing && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: '#fff', padding: '2rem', borderRadius: '12px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontWeight: 800 }}>Editar Indicação</h3>
-            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ backgroundColor: '#fff', padding: '3rem', borderRadius: '0px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h3 style={{ marginBottom: '2rem', fontWeight: 300, fontSize: '1.5rem', letterSpacing: '-0.02em' }}>Editar Indicação</h3>
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Nome do Cliente</label>
-                <input required value={editForm.clientName} onChange={e => setEditForm({...editForm, clientName: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Nome do Cliente</label>
+                <input required value={editForm.clientName} onChange={e => setEditForm({...editForm, clientName: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Telefone do Cliente</label>
-                <input value={editForm.clientPhone} onChange={e => setEditForm({...editForm, clientPhone: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Telefone</label>
+                <input value={editForm.clientPhone} onChange={e => setEditForm({...editForm, clientPhone: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Arquiteto</label>
-                <input value={editForm.architectName} onChange={e => setEditForm({...editForm, architectName: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Arquiteto</label>
+                <input value={editForm.architectName} onChange={e => setEditForm({...editForm, architectName: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Detalhes do Projeto</label>
-                <textarea rows={3} value={editForm.projectDetails} onChange={e => setEditForm({...editForm, projectDetails: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Detalhes do Projeto</label>
+                <textarea rows={3} value={editForm.projectDetails} onChange={e => setEditForm({...editForm, projectDetails: e.target.value})} className="input-field" />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Status</label>
-                <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }}>
+                <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Status</label>
+                <select value={editForm.status} onChange={e => setEditForm({...editForm, status: e.target.value})} className="input-field">
                   <option value="PENDING">Pendente</option>
                   <option value="CONTACTED">Contatado</option>
                   <option value="QUOTED">Orçado</option>
@@ -296,15 +277,15 @@ export default function AdminTableRow({ ind, isAdmin }: { ind: IndicacaoRow, isA
               </div>
               {editForm.status === 'CLOSED_WON' && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Valor Fechado (R$)</label>
-                  <input type="number" step="0.01" value={editForm.closedValue} onChange={e => setEditForm({...editForm, closedValue: e.target.value})} style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #ccc' }} />
+                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#888', marginBottom: '0.5rem' }}>Valor Fechado (R$)</label>
+                  <input type="number" step="0.01" value={editForm.closedValue} onChange={e => setEditForm({...editForm, closedValue: e.target.value})} className="input-field" />
                 </div>
               )}
               <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                <button type="submit" disabled={loading} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#000', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer' }}>
+                <button type="submit" disabled={loading} className="btn-primary" style={{ flex: 1 }}>
                   {loading ? 'Salvando...' : 'SALVAR'}
                 </button>
-                <button type="button" onClick={() => setIsEditing(false)} style={{ flex: 1, padding: '0.75rem', backgroundColor: '#f5f5f5', color: '#000', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}>
+                <button type="button" onClick={() => setIsEditing(false)} className="btn-outline" style={{ flex: 1 }}>
                   CANCELAR
                 </button>
               </div>
