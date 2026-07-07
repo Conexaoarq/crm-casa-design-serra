@@ -139,6 +139,13 @@ function LoginForm() {
             }} disabled={loading}>
               {loading ? 'AUTENTICANDO...' : 'ACESSAR PLATAFORMA'}
             </button>
+
+            <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+              <p style={{ fontSize: '0.8rem', color: '#666' }}>
+                Esqueceu sua senha? <br/>
+                <span style={{ fontWeight: 600, color: '#111' }}>Solicite um novo acesso ao administrador.</span>
+              </p>
+            </div>
           </form>
         </div>
 

@@ -54,7 +54,7 @@ export default function Dashboard() {
           <strong style={{ fontWeight: 800 }}>Resultados.</strong>
         </h1>
         <p style={{ marginTop: '1.5rem', color: '#666', fontSize: '1rem', maxWidth: '500px', letterSpacing: '0.02em', lineHeight: 1.6 }}>
-          Conecte clientes às melhores empresas do grupo. Uma rede de arquitetura, decoração e negócios.
+          Conecte clientes às empresas do grupo. Uma rede de arquitetura, decoração e negócios.
         </p>
       </div>
 

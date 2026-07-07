@@ -421,3 +421,35 @@ export async function getDashboardData() {
     },
   };
 }
+
+// ================================
+// SERVER ACTION: Mudar Senha do Usuário
+// ================================
+export async function mudarSenha(email: string, senhaAtual: string, novaSenha: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || session.user?.email !== email) {
+    return { sucesso: false, erro: "Não autorizado." };
+  }
+
+  if (novaSenha.length < 6) {
+    return { sucesso: false, erro: "A nova senha deve ter pelo menos 6 caracteres." };
+  }
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return { sucesso: false, erro: "Usuário não encontrado." };
+
+    if (user.password !== senhaAtual) {
+      return { sucesso: false, erro: "A senha atual está incorreta." };
+    }
+
+    await prisma.user.update({
+      where: { email },
+      data: { password: novaSenha }
+    });
+
+    return { sucesso: true };
+  } catch (err) {
+    return { sucesso: false, erro: "Erro ao tentar mudar a senha." };
+  }
+}
