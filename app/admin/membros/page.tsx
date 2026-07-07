@@ -74,7 +74,7 @@ export default async function MembrosPage() {
       });
 
       const baseUrl = "https://crm-casa-design-serra-production.up.railway.app";
-      const url = `${baseUrl}/api/invite?token=${token}&email=${encodeURIComponent(email)}`;
+      const url = `${baseUrl}/api/invite?token=${token}`;
 
       // Enviar via Resend
       await fetch("https://api.resend.com/emails", {

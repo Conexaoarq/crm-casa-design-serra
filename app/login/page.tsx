@@ -28,10 +28,12 @@ function LoginForm() {
       });
     }
     
-    // Tratamento de erros vindo da rota de invite
+    // Tratamento de erros vindo da rota de invite e do NextAuth
     const urlError = searchParams.get('error');
-    if (urlError === 'ExpiredLink') setError('Este link de convite já expirou.');
-    if (urlError === 'InvalidLink') setError('Link de convite inválido.');
+    if (urlError === 'ExpiredLink') setError('Este link de convite já expirou ou é inválido. Peça um novo acesso.');
+    if (urlError === 'InvalidLink') setError('Link de convite inválido ou malformado.');
+    if (urlError === 'CredentialsSignin') setError('Falha na autenticação do link mágico. O token não confere.');
+    if (urlError === 'AccessDenied') setError('Acesso negado. Seu e-mail pode não estar cadastrado.');
   }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
