@@ -6,10 +6,11 @@ export async function middleware(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const { pathname } = request.nextUrl;
 
-  // Permitir acesso livre a login, api/auth e assets estáticos
+  // Permitir acesso livre a login, api/auth, api/invite e assets estáticos
   if (
     pathname.startsWith('/login') ||
     pathname.startsWith('/api/auth') ||
+    pathname.startsWith('/api/invite') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico'
   ) {

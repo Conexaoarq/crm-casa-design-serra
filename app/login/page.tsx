@@ -94,10 +94,10 @@ function LoginForm() {
           border: '1px solid #f0f0f0'
         }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', textAlign: 'center' }}>
-            {searchParams.get('inviteToken') ? 'Validando Acesso...' : 'Acesso do Administrador'}
+            {searchParams.get('inviteToken') ? 'Validando Acesso...' : 'Acesso Restrito'}
           </h1>
           <p style={{ color: '#aaa', fontSize: '0.875rem', marginBottom: '2.5rem', textAlign: 'center' }}>
-            {searchParams.get('inviteToken') ? 'Por favor, aguarde um instante.' : 'Digite suas credenciais para gerenciar a plataforma.'}
+            {searchParams.get('inviteToken') ? 'Por favor, aguarde um instante.' : 'Área exclusiva para administradores da plataforma.'}
           </p>
 
           {error && (
