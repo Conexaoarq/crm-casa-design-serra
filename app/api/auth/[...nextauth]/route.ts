@@ -52,31 +52,17 @@ export const authOptions = {
       },
     }),
     CredentialsProvider({
-      name: "Senha Admin",
+      name: "Senha de Acesso",
       credentials: {
         email: { label: "E-mail", type: "email" },
-        password: { label: "Senha", type: "password" },
-        inviteToken: { label: "Token", type: "text" }
+        password: { label: "Senha", type: "password" }
       },
       async authorize(credentials) {
-        if (!credentials?.email) return null;
+        if (!credentials?.email || !credentials?.password) return null;
         
-        // 1. Caso seja Login por Link de Convite (Auto-login)
-        if (credentials.inviteToken) {
-          const user = await prisma.user.findUnique({
-            where: { email: credentials.email }
-          });
-          
-          if (user && user.password === credentials.inviteToken) {
-            // O token não é limpo aqui. Assim o membro pode usar o link do e-mail como um "superlink" permanente.
-            // Se o admin reenviar o acesso, um novo token será gerado, invalidando o antigo.
-            return user;
-          }
-        }
-
-        // 2. Caso seja Login de Administrador com Senha
+        // 1. Caso seja Login de Administrador Mestre
         const admins = ['casadesignserra639@gmail.com', 'aabergamo@gmail.com'];
-        const masterPass = "casa639"; // Sua senha de construção
+        const masterPass = "casa639";
 
         if (admins.includes(credentials.email) && credentials.password === masterPass) {
           const user = await prisma.user.upsert({
@@ -84,6 +70,16 @@ export const authOptions = {
             update: { role: 'ADMIN' },
             create: { email: credentials.email, role: 'ADMIN' },
           });
+          return user;
+        }
+
+        // 2. Caso seja um Membro Comum ou Conselheiro
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email }
+        });
+        
+        // Compara a senha digitada com a senha salva no banco
+        if (user && user.password === credentials.password) {
           return user;
         }
         

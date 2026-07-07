@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -10,31 +10,6 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const searchParams = useSearchParams();
-  const loginAttempted = useRef(false);
-
-  // Efeito para auto-login se vier com inviteToken
-  useEffect(() => {
-    const inviteToken = searchParams.get('inviteToken');
-    const inviteEmail = searchParams.get('email');
-
-    if (inviteToken && inviteEmail && !loginAttempted.current) {
-      loginAttempted.current = true;
-      setLoading(true);
-      signIn('credentials', { 
-        email: inviteEmail, 
-        inviteToken: inviteToken, 
-        redirect: true, 
-        callbackUrl: '/' 
-      });
-    }
-    
-    // Tratamento de erros vindo da rota de invite e do NextAuth
-    const urlError = searchParams.get('error');
-    if (urlError === 'ExpiredLink') setError('Este link de convite já expirou ou é inválido. Peça um novo acesso.');
-    if (urlError === 'InvalidLink') setError('Link de convite inválido ou malformado.');
-    if (urlError === 'CredentialsSignin') setError('Falha na autenticação do link mágico. O token não confere.');
-    if (urlError === 'AccessDenied') setError('Acesso negado. Seu e-mail pode não estar cadastrado.');
-  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +26,7 @@ function LoginForm() {
       setError('Credenciais inválidas. Verifique seu e-mail e senha.');
       setLoading(false);
     } else {
-      window.location.href = '/admin';
+      window.location.href = '/';
     }
   };
 
@@ -96,10 +71,10 @@ function LoginForm() {
           border: '1px solid #f0f0f0'
         }}>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '0.5rem', textAlign: 'center' }}>
-            {searchParams.get('inviteToken') ? 'Validando Acesso...' : 'Acesso Restrito'}
+            Acesso ao Sistema
           </h1>
           <p style={{ color: '#aaa', fontSize: '0.875rem', marginBottom: '2.5rem', textAlign: 'center' }}>
-            {searchParams.get('inviteToken') ? 'Por favor, aguarde um instante.' : 'Área exclusiva para administradores da plataforma.'}
+            Digite seu e-mail e senha para acessar a plataforma.
           </p>
 
           {error && (
@@ -108,72 +83,63 @@ function LoginForm() {
             </div>
           )}
 
-          {!searchParams.get('inviteToken') && (
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#000', marginBottom: '0.5rem', textTransform: 'uppercase' }}>E-mail Administrativo</label>
-                <input 
-                  type="email" 
-                  required 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="exemplo@casadesign.com"
-                  style={{ 
-                    width: '100%', 
-                    padding: '1rem', 
-                    borderRadius: '12px', 
-                    border: '1px solid #e5e5e5', 
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-              
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#000', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Senha de Segurança</label>
-                <input 
-                  type="password" 
-                  required 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  style={{ 
-                    width: '100%', 
-                    padding: '1rem', 
-                    borderRadius: '12px', 
-                    border: '1px solid #e5e5e5', 
-                    fontSize: '1rem',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              <button type="submit" style={{ 
-                width: '100%', 
-                padding: '1.125rem', 
-                borderRadius: '12px',
-                backgroundColor: '#000',
-                color: '#fff',
-                fontSize: '1rem',
-                fontWeight: 700,
-                cursor: 'pointer',
-                border: 'none',
-                marginTop: '1rem',
-                transition: 'opacity 0.2s'
-              }} disabled={loading}>
-                {loading ? 'AUTENTICANDO...' : 'ACESSAR DASHBOARD'}
-              </button>
-            </form>
-          )}
-
-          {searchParams.get('inviteToken') && (
-            <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div className="spinner" style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #000', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite', margin: '0 auto 1.5rem' }}></div>
-              <p style={{ fontWeight: 600 }}>Entrando no sistema...</p>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#000', marginBottom: '0.5rem', textTransform: 'uppercase' }}>E-mail de Acesso</label>
+              <input 
+                type="email" 
+                required 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="exemplo@casadesign.com"
+                style={{ 
+                  width: '100%', 
+                  padding: '1rem', 
+                  borderRadius: '12px', 
+                  border: '1px solid #e5e5e5', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
             </div>
-          )}
+            
+            <div>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#000', marginBottom: '0.5rem', textTransform: 'uppercase' }}>Senha</label>
+              <input 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                style={{ 
+                  width: '100%', 
+                  padding: '1rem', 
+                  borderRadius: '12px', 
+                  border: '1px solid #e5e5e5', 
+                  fontSize: '1rem',
+                  outline: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+            </div>
+
+            <button type="submit" style={{ 
+              width: '100%', 
+              padding: '1.125rem', 
+              borderRadius: '12px',
+              backgroundColor: '#000',
+              color: '#fff',
+              fontSize: '1rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              border: 'none',
+              marginTop: '1rem',
+              transition: 'opacity 0.2s'
+            }} disabled={loading}>
+              {loading ? 'AUTENTICANDO...' : 'ACESSAR PLATAFORMA'}
+            </button>
+          </form>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>

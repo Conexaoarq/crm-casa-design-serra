@@ -62,19 +62,18 @@ export default async function MembrosPage() {
 
   async function enviarConvite(email: string) {
     'use server';
-    // Gerar um token de convite simples e seguro
-    const token = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+    // Gerar uma senha aleatória simples de 6 caracteres
+    const senhaGerada = Math.random().toString(36).substring(2, 8).toUpperCase();
 
     try {
-      // Guardar o token no modelo de usuário para validação direta
+      // Guardar a senha no banco de dados
       await prisma.user.update({
         where: { email },
-        data: { password: token } // Usando o campo password temporariamente como token de invite
+        data: { password: senhaGerada } 
       });
 
       const baseUrl = "https://crm-casa-design-serra-production.up.railway.app";
-      const url = `${baseUrl}/api/invite?token=${token}`;
+      const loginUrl = `${baseUrl}/login`;
 
       // Enviar via Resend
       await fetch("https://api.resend.com/emails", {
@@ -91,11 +90,17 @@ export default async function MembrosPage() {
           html: `
             <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
               <h2 style="color: #333; text-align: center;">Bem-vindo à Casa Design Serra!</h2>
-              <p style="color: #555; line-height: 1.6;">Você foi selecionado para participar da nossa plataforma exclusiva de multiplicação de negócios.</p>
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${url}" style="background-color: #111; color: #fff; padding: 16px 32px; text-decoration: none; border-radius: 2px; font-weight: bold; display: inline-block;">CLIQUE AQUI PARA ENTRAR</a>
+              <p style="color: #555; line-height: 1.6;">Você foi adicionado à nossa plataforma exclusiva de gestão e negócios.</p>
+              
+              <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0 0 10px 0;"><strong>Seus dados de acesso:</strong></p>
+                <p style="margin: 0 0 5px 0;">E-mail: <strong>${email}</strong></p>
+                <p style="margin: 0;">Senha provisória: <strong style="font-size: 18px; color: #000; letter-spacing: 2px;">${senhaGerada}</strong></p>
               </div>
-              <p style="font-size: 12px; color: #888; text-align: center;">Este link é pessoal e dá acesso direto ao seu dashboard.</p>
+
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${loginUrl}" style="background-color: #111; color: #fff; padding: 16px 32px; text-decoration: none; border-radius: 2px; font-weight: bold; display: inline-block;">ACESSAR PLATAFORMA</a>
+              </div>
             </div>
           `,
         }),
