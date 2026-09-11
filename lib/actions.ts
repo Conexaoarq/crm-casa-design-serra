@@ -20,11 +20,15 @@ export async function criarIndicacao(formData: FormData) {
 
   // Buscar o usuário de destino pelo nome da empresa (se não for "todos")
   let toUserId: string | null = null;
+  let toUserEmail: string | null = null;
   if (toCompany && toCompany !== 'todos') {
     const toUser = await prisma.user.findFirst({
       where: { companyName: toCompany }
     });
-    if (toUser) toUserId = toUser.id;
+    if (toUser) {
+      toUserId = toUser.id;
+      toUserEmail = toUser.email;
+    }
   }
 
   const referral = await prisma.referral.create({
@@ -51,6 +55,39 @@ export async function criarIndicacao(formData: FormData) {
       })
     }
   });
+
+  if (toUserEmail) {
+    try {
+      const fromUser = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
+          to: [toUserEmail],
+          subject: "Você recebeu uma nova indicação! - Casa Design Serra",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #d4af37; border-radius: 12px; background-color: #fff;">
+              <h2 style="color: #000;">Nova Indicação Recebida!</h2>
+              <p style="color: #333;">Você acabou de receber uma indicação da empresa <strong>${fromUser?.companyName || 'um membro'}</strong>.</p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>Cliente:</strong> ${clientName}</p>
+              </div>
+              <p style="color: #555;">Acesse o sistema CRM para visualizar todos os detalhes (telefone, arquiteto e observações) e dar andamento ao negócio.</p>
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${process.env.NEXTAUTH_URL}/login" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar o CRM</a>
+              </div>
+            </div>
+          `,
+        }),
+      });
+    } catch (e) {
+      console.error("Erro ao enviar email de nova indicação:", e);
+    }
+  }
 
   return { success: true, referralId: referral.id };
 }
@@ -85,6 +122,44 @@ export async function pedirLead(formData: FormData) {
       })
     }
   });
+
+  // Enviar email em lote para todos
+  const allUsers = await prisma.user.findMany({ select: { email: true } });
+  const recipientEmails = allUsers.map(u => u.email).filter(Boolean) as string[];
+
+  if (recipientEmails.length > 0) {
+    try {
+      const fromUser = await prisma.user.findUnique({ where: { id: (session.user as any).id } });
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        },
+        body: JSON.stringify({
+          from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
+          to: recipientEmails,
+          reply_to: fromUser?.email || undefined,
+          subject: "Pedido de Indicação! - Casa Design Serra",
+          html: `
+            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #d4af37; border-radius: 12px; background-color: #fff;">
+              <h2 style="color: #000;">Alguém precisa de uma indicação!</h2>
+              <p style="color: #333;">A empresa <strong>${fromUser?.companyName || 'um membro'}</strong> está solicitando uma indicação no ecossistema.</p>
+              <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin: 20px 0;">
+                <p style="margin: 5px 0;"><strong>O que eles procuram:</strong><br/>${whatLookingFor.replace(/\n/g, '<br/>')}</p>
+              </div>
+              <p style="color: #555;">Se você puder ajudar, acesse o CRM e faça a indicação diretamente para eles!</p>
+              <div style="text-align: center; margin-top: 30px;">
+                <a href="${process.env.NEXTAUTH_URL}/login" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar o CRM</a>
+              </div>
+            </div>
+          `,
+        }),
+      });
+    } catch (e) {
+      console.error("Erro ao enviar email de pedido de lead:", e);
+    }
+  }
 
   return { success: true, referralId: referral.id };
 }
