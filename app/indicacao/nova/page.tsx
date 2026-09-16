@@ -1,26 +1,22 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
-import { criarIndicacao } from "@/lib/actions";
-
-const COMPANIES = [
-  "Amma design", "AZ", "Betonart", "Cammino Pedras", "DCA", "Duo Mobile", 
-  "Ecobraum", "Farrapos Premium", "Felesa Churrasqueiras", "Futura Luz", 
-  "Gregory Volpato", "HPOOL", "Jornal Serra Design", "Linda Flores", 
-  "Moderna Automação", "Nolan Collection", "Ombra", "Prima Cor", 
-  "Sole Aquecimento", "Triade", "Valen Esquadrias", "Willam Camargo Fotografia",
-  // Espaços reservados para completar 40
-  "Membro 23", "Membro 24", "Membro 25", "Membro 26", "Membro 27", 
-  "Membro 28", "Membro 29", "Membro 30", "Membro 31", "Membro 32", 
-  "Membro 33", "Membro 34", "Membro 35", "Membro 36", "Membro 37", 
-  "Membro 38", "Membro 39", "Membro 40"
-];
+import { useState, useEffect } from "react";
+import { criarIndicacao, getAllCompanies } from "@/lib/actions";
 
 export default function NovaIndicacao() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [companies, setCompanies] = useState<string[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
+
+  useEffect(() => {
+    getAllCompanies().then((res) => {
+      setCompanies(res);
+      setLoadingCompanies(false);
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -88,9 +84,11 @@ export default function NovaIndicacao() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Para quem é a indicação?</label>
               <select name="toCompany" className="input-field" required defaultValue="">
-                <option value="" disabled>Selecione a empresa ou membro...</option>
+                <option value="" disabled>
+                  {loadingCompanies ? "Carregando empresas..." : "Selecione a empresa ou membro..."}
+                </option>
                 <option value="todos" style={{ fontWeight: 'bold' }}>➡️ Para Todos (Qualquer empresa pode pegar)</option>
-                {COMPANIES.map((company, index) => (
+                {companies.map((company, index) => (
                   <option key={index} value={company}>{company}</option>
                 ))}
               </select>

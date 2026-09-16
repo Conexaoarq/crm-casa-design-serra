@@ -528,3 +528,18 @@ export async function mudarSenha(email: string, senhaAtual: string, novaSenha: s
     return { sucesso: false, erro: "Erro ao tentar mudar a senha." };
   }
 }
+
+// ================================
+// SERVER ACTION: Buscar Lista de Empresas
+// ================================
+export async function getAllCompanies() {
+  const users = await prisma.user.findMany({
+    where: { role: { not: 'ADMIN' } }, // Ou pode remover o filtro se Admin puder receber
+    select: { companyName: true },
+    orderBy: { companyName: 'asc' }
+  });
+  
+  // Retorna apenas os nomes únicos que não sejam nulos
+  const companies = Array.from(new Set(users.map(u => u.companyName).filter(Boolean))) as string[];
+  return companies;
+}
