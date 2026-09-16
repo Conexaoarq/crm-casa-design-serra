@@ -34,6 +34,7 @@ export default function RootLayout({
               </Link>
               <nav style={{ display: 'flex', gap: '1.5rem', fontSize: '0.875rem', color: 'var(--muted-foreground)', alignItems: 'center' }}>
                 <Link href="/" style={{ textDecoration: 'none', color: 'inherit' }}>Dashboard</Link>
+                <Link href="/indicacao/minhas" style={{ textDecoration: 'none', color: 'inherit' }}>Minhas Indicações</Link>
                 <Link href="/admin" style={{ textDecoration: 'none', color: 'inherit' }}>Admin</Link>
                 <Link href="/perfil" style={{ textDecoration: 'none', color: 'inherit' }}>Minha Conta</Link>
               </nav>

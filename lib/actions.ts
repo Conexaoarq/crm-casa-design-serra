@@ -76,9 +76,9 @@ export async function criarIndicacao(formData: FormData) {
               <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; margin: 20px 0;">
                 <p style="margin: 5px 0;"><strong>Cliente:</strong> ${clientName}</p>
               </div>
-              <p style="color: #555;">Acesse o sistema CRM para visualizar todos os detalhes (telefone, arquiteto e observações) e dar andamento ao negócio.</p>
+              <p style="color: #555;">Acesse a sua área de 'Minhas Indicações' para visualizar todos os detalhes (telefone, arquiteto e observações) e dar andamento ao negócio.</p>
               <div style="text-align: center; margin-top: 30px;">
-                <a href="${process.env.NEXTAUTH_URL}/login" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar o CRM</a>
+                <a href="${process.env.NEXTAUTH_URL}/indicacao/minhas" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Ver Indicação Completa</a>
               </div>
             </div>
           `,
@@ -150,7 +150,7 @@ export async function pedirLead(formData: FormData) {
               </div>
               <p style="color: #555;">Se você puder ajudar, acesse o CRM e faça a indicação diretamente para eles!</p>
               <div style="text-align: center; margin-top: 30px;">
-                <a href="${process.env.NEXTAUTH_URL}/login" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Acessar o CRM</a>
+                <a href="${process.env.NEXTAUTH_URL}/indicacao/nova" style="background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">Fazer uma Indicação</a>
               </div>
             </div>
           `,
