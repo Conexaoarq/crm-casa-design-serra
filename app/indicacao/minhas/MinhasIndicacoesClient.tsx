@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 export default function MinhasIndicacoesClient({ recebidas, enviadas }: { recebidas: any[], enviadas: any[] }) {
   const [tab, setTab] = useState<'recebidas' | 'enviadas'>('recebidas');
@@ -84,7 +82,7 @@ export default function MinhasIndicacoesClient({ recebidas, enviadas }: { recebi
                 
                 <div style={{ flex: 1, minWidth: '250px' }}>
                   <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.25rem' }}>
-                    {format(new Date(item.createdAt), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                    {new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(item.createdAt))}
                   </div>
                   
                   <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem', color: '#111' }}>
