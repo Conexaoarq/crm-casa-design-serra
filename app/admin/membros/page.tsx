@@ -39,6 +39,21 @@ export default async function MembrosPage() {
   async function deleteMembro(id: string) {
     'use server';
     try {
+      // 1. Deletar logs de auditoria vinculados
+      await prisma.auditLog.deleteMany({ where: { userId: id } });
+      
+      // 2. Desvincular as indicações RECEBIDAS (toUserId é opcional)
+      await prisma.referral.updateMany({ where: { toUserId: id }, data: { toUserId: null } });
+
+      // 3. Deletar as indicações ENVIADAS (e seus negócios fechados, se houver)
+      const sentReferrals = await prisma.referral.findMany({ where: { fromUserId: id }, select: { id: true } });
+      const sentIds = sentReferrals.map((r: any) => r.id);
+      if (sentIds.length > 0) {
+        await prisma.closedBusiness.deleteMany({ where: { referralId: { in: sentIds } } });
+        await prisma.referral.deleteMany({ where: { fromUserId: id } });
+      }
+
+      // 4. Finalmente, deletar o usuário (Accounts e Sessions já têm onDelete: Cascade no schema)
       await prisma.user.delete({ where: { id } });
       revalidatePath('/admin/membros');
     } catch (e) {
