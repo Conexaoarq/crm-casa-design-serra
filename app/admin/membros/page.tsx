@@ -4,6 +4,7 @@ import { authOptions } from "../../api/auth/[...nextauth]/route";
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import MembroTableRow from "./MembroTableRow";
 
 export default async function MembrosPage() {
   const session = await getServerSession(authOptions);
@@ -36,95 +37,7 @@ export default async function MembrosPage() {
     }
   }
 
-  async function deleteMembro(id: string) {
-    'use server';
-    try {
-      // 1. Deletar logs de auditoria vinculados
-      await prisma.auditLog.deleteMany({ where: { userId: id } });
-      
-      // 2. Desvincular as indicações RECEBIDAS (toUserId é opcional)
-      await prisma.referral.updateMany({ where: { toUserId: id }, data: { toUserId: null } });
-
-      // 3. Deletar as indicações ENVIADAS (e seus negócios fechados, se houver)
-      const sentReferrals = await prisma.referral.findMany({ where: { fromUserId: id }, select: { id: true } });
-      const sentIds = sentReferrals.map((r: any) => r.id);
-      if (sentIds.length > 0) {
-        await prisma.closedBusiness.deleteMany({ where: { referralId: { in: sentIds } } });
-        await prisma.referral.deleteMany({ where: { fromUserId: id } });
-      }
-
-      // 4. Finalmente, deletar o usuário (Accounts e Sessions já têm onDelete: Cascade no schema)
-      await prisma.user.delete({ where: { id } });
-      revalidatePath('/admin/membros');
-    } catch (e) {
-      console.error("Erro ao deletar membro:", e);
-    }
-  }
-
-  async function toggleConselheiro(id: string, currentRole: string) {
-    'use server';
-    try {
-      const newRole = currentRole === 'CONSELHEIRO' ? 'MEMBER' : 'CONSELHEIRO';
-      await prisma.user.update({
-        where: { id },
-        data: { role: newRole },
-      });
-      revalidatePath('/admin/membros');
-    } catch (e) {
-      console.error("Erro ao alterar papel:", e);
-    }
-  }
-
-  async function enviarConvite(email: string) {
-    'use server';
-    // Gerar uma senha aleatória simples de 6 caracteres
-    const senhaGerada = Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    try {
-      // Guardar a senha no banco de dados
-      await prisma.user.update({
-        where: { email },
-        data: { password: senhaGerada } 
-      });
-
-      const baseUrl = "https://crm-casa-design-serra-production.up.railway.app";
-      const loginUrl = `${baseUrl}/login`;
-
-      // Enviar via Resend
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: "Casa Design Serra <notificacoes@casadesignserra.com.br>",
-          to: email,
-          reply_to: "aabergamo@gmail.com",
-          subject: "Seu Acesso Exclusivo - Casa Design Serra",
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-              <h2 style="color: #333; text-align: center;">Bem-vindo à Casa Design Serra!</h2>
-              <p style="color: #555; line-height: 1.6;">Você foi adicionado à nossa plataforma exclusiva de gestão e negócios.</p>
-              
-              <div style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0 0 10px 0;"><strong>Seus dados de acesso:</strong></p>
-                <p style="margin: 0 0 5px 0;">E-mail: <strong>${email}</strong></p>
-                <p style="margin: 0;">Senha provisória: <strong style="font-size: 18px; color: #000; letter-spacing: 2px;">${senhaGerada}</strong></p>
-              </div>
-
-              <div style="text-align: center; margin: 30px 0;">
-                <a href="${loginUrl}" style="background-color: #111; color: #fff; padding: 16px 32px; text-decoration: none; border-radius: 2px; font-weight: bold; display: inline-block;">ACESSAR PLATAFORMA</a>
-              </div>
-            </div>
-          `,
-        }),
-      });
-      console.log("Convite enviado via rota de bypass para:", email);
-    } catch (e) {
-      console.error("Erro ao enviar convite:", e);
-    }
-  }
+  // Server actions foram movidos para actions.ts
 
   const conselheiros = membros.filter(m => m.role === 'CONSELHEIRO');
 
@@ -199,63 +112,7 @@ export default async function MembrosPage() {
             </thead>
             <tbody>
               {membros.map((membro) => (
-                <tr key={membro.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '1.5rem', fontWeight: 600, fontSize: '0.9rem' }}>{membro.companyName || '---'}</td>
-                  <td style={{ padding: '1.5rem', color: '#666', fontSize: '0.9rem' }}>{membro.email}</td>
-                  <td style={{ padding: '1.5rem', textAlign: 'center' }}>
-                      <span style={{ 
-                      fontSize: '0.7rem', 
-                      padding: '4px 8px', 
-                      borderRadius: '2px', 
-                      backgroundColor: membro.role === 'ADMIN' ? '#111' : membro.role === 'CONSELHEIRO' ? '#fafafa' : '#fff', 
-                      border: membro.role === 'ADMIN' ? '1px solid #111' : '1px solid var(--border)',
-                      color: membro.role === 'ADMIN' ? '#fff' : '#111',
-                      fontWeight: 600,
-                      letterSpacing: '0.05em'
-                    }}>
-                      {membro.role}
-                    </span>
-                  </td>
-                  <td style={{ padding: '1.5rem', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                      {/* Botão CONSELHEIRO - toggle on/off */}
-                      {membro.role !== 'ADMIN' && (
-                        <form action={async () => { 'use server'; await toggleConselheiro(membro.id, membro.role); }}>
-                          <button type="submit" style={{ 
-                            fontSize: '0.7rem', 
-                            padding: '0.4rem 0.8rem', 
-                            borderRadius: '0px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: membro.role === 'CONSELHEIRO' ? '#f4f4f5' : 'transparent',
-                            color: membro.role === 'CONSELHEIRO' ? '#111' : '#888',
-                            cursor: 'pointer',
-                            fontWeight: 600,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em'
-                          }}>
-                            {membro.role === 'CONSELHEIRO' ? 'Remover Conselheiro' : 'Tornar Conselheiro'}
-                          </button>
-                        </form>
-                      )}
-
-                      {/* Botão ENVIAR ACESSO */}
-                      {membro.role !== 'ADMIN' && (
-                        <form action={async () => { 'use server'; await enviarConvite(membro.email!); }}>
-                          <button type="submit" className="btn-outline" style={{ fontSize: '0.7rem', padding: '0.4rem 0.8rem' }}>
-                            ENVIAR ACESSO
-                          </button>
-                        </form>
-                      )}
-
-                      {/* Botão EXCLUIR */}
-                      {membro.email !== 'casadesignserra639@gmail.com' && membro.email !== 'aabergamo@gmail.com' && (
-                        <form action={async () => { 'use server'; await deleteMembro(membro.id); }}>
-                          <button type="submit" style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.7rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Excluir</button>
-                        </form>
-                      )}
-                    </div>
-                  </td>
-                </tr>
+                <MembroTableRow key={membro.id} membro={membro} />
               ))}
             </tbody>
           </table>
