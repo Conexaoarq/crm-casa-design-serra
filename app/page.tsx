@@ -85,7 +85,7 @@ export default function Dashboard() {
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 600, color: '#111', textTransform: 'uppercase', marginBottom: '2rem', letterSpacing: '0.2em' }}>Expansão de Rede</div>
               <h3 style={{ fontSize: '1.75rem', fontWeight: 300, marginBottom: '1rem', color: '#000', letterSpacing: '-0.02em' }}>
-                Pedir <strong style={{ fontWeight: 700 }}>Lead Quente</strong>
+                Pedir <strong style={{ fontWeight: 700 }}>Lead</strong>
               </h3>
               <p style={{ color: '#666', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '3rem' }}>
                 Busca um contato específico? Acione o grupo para encontrar a conexão exata.

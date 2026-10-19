@@ -55,7 +55,7 @@ export default function PedirIndicacao() {
         </Link>
 
         <h1 style={{ fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.025em', marginBottom: '0.5rem' }}>
-          Quero um Lead Quente!
+          Quero um Lead!
         </h1>
         <p style={{ color: 'var(--muted-foreground)', marginBottom: '2.5rem' }}>
           Explique para o grupo exatamente o perfil ou a pessoa específica que você está buscando para o seu negócio.
