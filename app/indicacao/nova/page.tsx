@@ -69,7 +69,7 @@ export default function NovaIndicacao() {
           Indicar um Multiplicador
         </h1>
         <p style={{ color: 'var(--muted-foreground)', marginBottom: '2.5rem' }}>
-          Passe o contato de um cliente ou lead quente para um membro do nosso grupo.
+          Passe o contato de um cliente ou lead para um membro do nosso grupo.
         </p>
 
         {error && (
